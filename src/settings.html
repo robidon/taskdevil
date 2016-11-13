@@ -1,0 +1,52 @@
+
+<dom-module id="page-settings">
+  <!-- Defines the element's style and local DOM -->
+  <template>
+    <style>
+      :host {
+        display: block;
+        padding: 16px;
+      }
+    </style>
+
+    <app-localstorage-document key="redmineURL" data="{{redmineURL}}"></app-localstorage-document>
+    <app-localstorage-document key="redmineApiKey" data="{{redmineApiKey}}"></app-localstorage-document>
+    <app-localstorage-document key="redmineUserId" data="{{redmineUserId}}"></app-localstorage-document>
+
+    <paper-input label="Redmine API URL" placeholder="https://www.com/" value={{redmineURL}}></paper-input>
+    <paper-input label="Redmine API KEY" value={{redmineApiKey}}></paper-input>
+    <paper-input label="Redmine User Id" value={{redmineUserId}}></paper-input>
+
+  </template>
+  <!-- Creates the element's prototype and registers it -->
+  <script>
+    Polymer({
+      is: 'page-settings',
+      properties: {
+        redmineURL : {
+          type: String,
+          notify: true,
+          observer:"configChanged"
+        },
+        redmineApiKey : {
+          type: String,
+          notify: true,
+          observer:"configChanged"
+        },
+        redmineUserId : {
+          type: String,
+          notify: true,
+          observer:"configChanged"
+        }
+      },
+      configChanged:function (newUrl) {
+        //console.log(this.redmineURL, this.redmineApiKey, this.redmineUserId);
+        tasks.updateConfig({
+          redmineURL:this.redmineURL,
+          apiKey: this.redmineApiKey,
+          userId: this.redmineUserId
+        });
+      }
+    });
+  </script>
+</dom-module>

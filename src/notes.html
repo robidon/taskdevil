@@ -1,0 +1,46 @@
+
+<dom-module id="page-notes">
+  <!-- Defines the element's style and local DOM -->
+  <template>
+    <style>
+      :host {
+        display: block;
+
+        padding: 16px;
+      }
+      .paper-dialog {
+        position: absolute;
+      }
+    </style>
+
+    <h1>New view</h1>
+
+    <paper-input value="{{search}}"></paper-input>
+    <app-localstorage-document key="search" data="{{search}}">
+    </app-localstorage-document>
+
+    <paper-button raised on-click="dialogToggle">dialog</paper-button>
+
+    <td-userchooser id='usd' on-select='uscb'></td-userchooser>
+
+    <paper-dialog id="dialog" role="dialog" class="paper-dialog">
+      <h2>Dialog Title</h2>
+      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
+        irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    </paper-dialog>
+
+  </template>
+  <!-- Creates the element's prototype and registers it -->
+  <script>
+    Polymer({
+      is: 'page-notes',
+      dialogToggle: function () {
+        this.$.usd.show();
+        //this.$.dialog.toggle();
+      },
+      uscb: function (e) {
+        console.log('us', e.detail.id);
+      }
+    });
+  </script>
+</dom-module>

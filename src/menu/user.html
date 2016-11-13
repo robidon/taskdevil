@@ -1,0 +1,85 @@
+<dom-module id="td-menu-user">
+  <template>
+    <style include="menu-styles">
+    </style>
+    <div class="tabHeader">
+      <paper-input-container on-tap="toggleFilters">
+        <label>Задачи</label>
+        <input is="iron-input" value$="[[assigned_to_name]], [[project_name]]" disabled/>
+        <paper-icon-button id="filtersIcon" suffix icon="icons:arrow-drop-down"></paper-icon-button>
+      </paper-input-container>
+      <iron-collapse id="collapseFilters">
+        <td-user-select label="" value="{{assigned_to_id}}" username="{{assigned_to_name}}"></td-user-select>
+        <td-project-select label="" value="{{project_id}}" projectname="{{project_name}}"></td-project-select>
+        <paper-button on-tap="applyFilters">Применить</paper-button>
+      </iron-collapse>
+    </div>
+
+    <div class="tabContent">
+      <div class="layout horizontal no-wrap" style="line-height:40px; text-align:center">
+        <paper-icon-button icon="hardware:keyboard-arrow-left"></paper-icon-button>
+        <div class="flex">Текущие задачи</div>
+        <paper-icon-button icon="hardware:keyboard-arrow-right"></paper-icon-button>
+      </div>
+      <template is="dom-repeat" items="[[foundTasks]]">
+        [[item.subject]]
+      </template>
+    </div>
+
+  </template>
+  <script type="text/javascript">
+    Polymer({
+      is:'td-menu-user',
+      properties: {
+        'assigned_to_id':{
+          type:Number,
+        },
+        'assigned_to_name':{
+          type:String,
+        },
+        'project_id':{
+          type:Number,
+        },
+        'project_name':{
+          type:String,
+        },
+        'statuses': {
+          type:Array,
+        },
+      },
+      ready: function () {
+        this.foundTasks = [];
+        var T = this;
+        tasks.users.fetchCurrent().then(function (user) {
+          T.assigned_to_id = user.id;
+          T.assigned_to_name = user.firstname + " " + user.lastname;
+          T.filtersChanged();
+        });
+      },
+      toggleFilters: function () {
+        this.$.filtersIcon.icon = (this.$.filtersIcon.icon == "icons:arrow-drop-up")?"icons:arrow-drop-down":"icons:arrow-drop-up";
+        this.$.collapseFilters.toggle();
+      },
+      applyFilters: function () {
+        this.toggleFilters();
+        this.filtersChanged();
+      },
+      filtersChanged: function () {
+        this.foundTasks = [];
+        var params = {};
+        var T = this;
+        params.status_id = '2,3';
+        if (T.project_id) {
+          params.project_id = T.project_id;
+        }
+        if (T.assigned_to_id) {
+          params.assigned_to_id = T.assigned_to_id;
+        }
+        tasks.fetchBy(params).then(function (tasks) {
+          T.foundTasks = tasks;
+          console.log(T.foundTasks);
+        });
+      }
+    })
+  </script>
+</dom-module>

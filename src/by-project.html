@@ -1,0 +1,47 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="components/tasklist.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="page-by-project">
+  <template>
+
+    <app-route route="[[route]]" pattern="/by-project/:project" data="{{routeData}}"></app-route>
+
+    <td-preloader display="[[showPreloader]]"></td-preloader>
+    <td-tasklist tasks=[[tasks]]></td-tasklist>
+
+
+  </template>
+  <script>
+    Polymer({
+      is: 'page-by-project',
+      properties: {
+        title:{
+          type:String,
+          notify:true
+        }
+      },
+      observers: [
+        'routeChanged(routeData.project)',
+      ],
+      routeChanged: function (project) {
+        var T = this;
+        if (project == T.loadedProject) return;
+        T.tasks = [];
+        T.showPreloader = true;
+        var projectInfoPromise = tasks.projects.fetchById(project)
+        projectInfoPromise.then(function (pr) {
+          T.title = pr.name;
+        });
+        tasks.fetchByProject(T.routeData.project).then(function (tasks) {
+          T.tasks = tasks;
+          T.loadedProject = project;
+          projectInfoPromise.then(function () {
+            T.showPreloader = false;
+          });
+        });
+      }
+    });
+  </script>
+</dom-module>

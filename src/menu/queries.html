@@ -1,0 +1,38 @@
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="td-menu-queries">
+  <template>
+    <style include="menu-styles">
+    </style>
+    <div class="tabHeader">
+      <div class="tabLabel">
+        Сохранённые запросы
+      </div>
+      <paper-listbox>
+        <template is="dom-repeat" items="[[queries]]">
+          <a href="/by-query/[[item.id]]" drawer-toggle><paper-item>[[item.name]]</paper-item></a>
+        </template>
+      </paper-listbox>
+    </div>
+    <div class="tabContent">
+      content goes here
+    </div>
+  </template>
+  <script type="text/javascript">
+  Polymer({
+    is:'td-menu-queries',
+    properties: {
+      currentProject: {
+        type: Object,
+        notify: true
+      }
+    },
+    ready:function () {
+      var T = this;
+      tasks.queries.fetchCurrent(this.currentProject).then(function (queries) {
+        T.queries = queries;
+      });
+    }
+  })
+  </script>
+</dom-module>

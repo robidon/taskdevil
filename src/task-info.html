@@ -1,0 +1,317 @@
+<link rel="import" href="components/html-echo.html">
+<link rel="import" href="components/taskedit.html">
+<link rel="import" href="shared-styles.html">
+
+<script type="text/javascript" src="../bower_components/moment/moment.js"></script>
+<script type="text/javascript" src="../bower_components/moment/locale/ru.js"></script>
+<script type="text/javascript" src="../bower_components/textile-js/lib/textile.min.js"></script>
+
+
+
+<dom-module id="page-task-info">
+
+  <template>
+    <style include="shared-styles iron-flex iron-flex-alignment">
+      .pageContent {
+        height: 100%;
+        --paper-tabs-selection-bar-color:var(--paper-indigo-500);
+      }
+      .topBarTabs {
+        --paper-tabs-selection-bar-color:var(--paper-indigo-500);
+      }
+      .taskContent {
+        overflow-y:auto;
+        padding:10px;
+      }
+      .bottomBar {
+        background-color:var(--paper-indigo-500);
+        color:#fff;
+      }
+      .journalsTabBadge {
+        --paper-badge-background:var(--paper-indigo-500);
+        --paper-badge-opacity:0.5;
+      }
+      .journalTime {
+        float:right;
+      }
+    </style>
+
+    <app-route route="[[route]]" pattern="/task-info/:id" data="{{routeData}}"></app-route>
+
+    <td-preloader display="[[showPreloader]]"></td-preloader>
+
+    <div class="vertical layout pageContent">
+
+      <div>
+        <paper-tabs class="topBarTabs" selected="{{selectedTab}}">
+          <paper-tab>Описание</paper-tab>
+          <paper-tab>
+            <span id="journalsTabTitle">История</span>
+            <template is="dom-if" if="[[task.journals.length]]">
+              <paper-badge for="journalsTabTitle" class="journalsTabBadge" label="[[task.journals.length]]"></paper-badge>
+            </template>
+          </paper-tab>
+        </paper-tabs>
+      </div>
+
+      <div class="flex taskContent">
+        <iron-pages selected="{{selectedTab}}">
+
+          <div>
+            <template is="dom-if" if="[[parenttask]]">
+              <a href="/task-info/[[parenttask.id]]">[[parenttask.subject]]</a>
+            </template>
+            <h1>[[task.subject]]</h1>
+            <html-echo html=[[formatText(task.description)]]></html-echo>
+            <p>Автор: <a href="">[[task.author.name]]</a></p>
+            <p>Назначена: <a href="">[[task.assigned_to.name]]</a></p>
+            <p>Статус: [[task.status.name]]</p>
+            <p>Дата создания: [[formatTime(task.created_on)]]</p>
+            <template is="d
+            om-if" if="task.children.length">
+              <p>Подзадачи:</p>
+              <ul>
+                <template is="dom-repeat" items="[[task.children]]">
+                  <li><a href="/task-info/[[item.id]]">[[item.subject]]</a></li>
+                </template>
+              </ul>
+            </template>
+          </div>
+
+          <div>
+            <template is="dom-repeat" items="[[task.journals]]" as="journal">
+              <div>
+                <span class="journalAuthor">[[journal.user.name]]</span>
+                <span class="journalTime">[[formatTime(journal.created_on)]]</span>
+                <span class="journalNote">[[journal.note]]</span>
+                <div class="journalChanges">
+                  <template is="dom-repeat" items="[[journal.details]]" as="detail">
+                    <div class="journalChangeItem">
+                      "[[detail.name]]": "[[detail.old_value]]" &rarr; "[[detail.new_value]]"
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+
+        </iron-pages>
+      </div>
+
+      <div class="bottomBar">
+        <paper-tabs align-bottom scrollable fit-container no-bar>
+          <template is='dom-if' if=[[availableActions.assignToMe]]>
+            <paper-tab action='assignToMe' on-tap="action">
+              <iron-icon class="buttonIcon" icon="icons:assignment-return"></iron-icon>
+              Забрать себе
+            </paper-tab>
+          </template>
+          <template is='dom-if' if=[[availableActions.assign]]>
+            <paper-tab action='assign' on-tap="action">
+              <iron-icon class="buttonIcon" icon="icons:assignment-ind"></iron-icon>
+              Назначить
+            </paper-tab>
+          </template>
+          <template is='dom-if' if=[[availableActions.start]]>
+            <paper-tab action='start' on-tap="action">
+              <iron-icon class="buttonIcon" icon="av:play-arrow"></iron-icon>
+              Приступаю
+            </paper-tab>
+          </template>
+          <template is='dom-if' if=[[availableActions.pause]]>
+            <paper-tab action='pause' on-tap="action">
+              <iron-icon class="buttonIcon" icon="av:pause"></iron-icon>
+              Откладываю
+            </paper-tab>
+          </template>
+          <template is='dom-if' if=[[availableActions.assignToQA]]>
+            <paper-tab action='assignToQA' on-tap="action">
+              <iron-icon class="buttonIcon" icon="icons:bug-report"></iron-icon>
+              Отправить в QA
+            </paper-tab>
+          </template>
+          <template is='dom-if' if=[[availableActions.close]]>
+            <paper-tab action='close' on-tap="action">
+              <iron-icon class="buttonIcon" icon="icons:done-all"></iron-icon>
+              Закрыть
+            </paper-tab>
+          </template>
+          <template is='dom-if' if=[[availableActions.watch]]>
+            <paper-tab action='watch' on-tap="action">
+              <iron-icon class="buttonIcon" icon="icons:visibility"></iron-icon>
+              Наблюдать
+            </paper-tab>
+          </template>
+          <template is='dom-if' if=[[availableActions.unwatch]]>
+            <paper-tab action='unwatch' on-tap="action">
+              <iron-icon class="buttonIcon" icon="icons:visibility-off"></iron-icon>
+              Не наблюдать
+            </paper-tab>
+          </template>
+
+        </paper-tabs>
+      </div>
+
+    </div>
+    <!--<paper-toolbar class="taskToolbar">
+    </paper-toolbar>-->
+  </template>
+
+  <script>
+    Polymer({
+      is: 'page-task-info',
+      properties: {
+        id: {
+          type: Number,
+          observer: "idChanged"
+        },
+        title: {
+          type: String,
+          notify: true
+        },
+        availableActions: {
+          type: Object
+        },
+        moremenu: {
+          type: Array,
+          notify: true
+        }
+      },
+      observers: [
+        'routeIdChanged(routeData.id)',
+      ],
+      ready: function () {
+      },
+      routeIdChanged: function (id) {
+        this.id = id;
+      },
+      updateView:function () {
+        this.idChanged();
+      },
+      idChanged: function () {
+        var id = this.id
+        var T = this;
+        T.task = undefined;
+        T.parenttask = undefined;
+        T.showPreloader = true;
+        T.selectedTab = 0;
+        T.moremenu = [];
+        tasks.fetchById(id).then(function (task) {
+          console.log(task);
+          T.task = task;
+          if (task.parent && task.parent.id) {
+            tasks.fetchById(task.parent.id).then(function (parenttask) {
+              T.parenttask = parenttask;
+            });
+          }
+          T.title = task.tracker.name + ": " + task.id;
+          T.availableActions = {
+            assignToQA: task.assigned_to.id == tasks.config.userId,
+            assign: task.assigned_to.id == tasks.config.userId
+              || task.author.id == tasks.config.userId,
+            assignToMe: task.assigned_to.id != tasks.config.userId,
+            start: task.assigned_to.id == tasks.config.userId
+              && ( task.status.id == tasks.STATUS.NEW || task.status.id == tasks.STATUS.ASSIGNED), // назначено или новый
+            pause: task.assigned_to.id == tasks.config.userId
+              && ( task.status.id == tasks.STATUS.INPROGRESS ), // в процессе
+            close: task.author.id == tasks.config.userId,
+            watch: task.author.id != tasks.config.userId
+              && task.assigned_to.id != tasks.config.userId
+              && -1 == _.findIndex(task.watchers, function (o) {
+                return o.id == tasks.config.userId
+              }),
+            unwatch: task.author.id != tasks.config.userId
+              && task.assigned_to.id != tasks.config.userId
+              && -1 != _.findIndex(task.watchers, function (o) {
+                return o.id == tasks.config.userId
+              }),
+          }
+          T.moremenu = [
+            {
+              name:"Изменить",
+              action:function () {
+                var editDialog = new TDTaskEditDialog();
+                editDialog.data=task;
+                editDialog.addEventListener('save', function (e) {
+                  var changes = event.detail;
+                  T.showPreloader = true;
+                  tasks.updateTask(T.id, changes).then(function (res) {
+                    T.updateView();
+                    T.showPreloader = false;
+                  });
+                  editDialog.remove();
+                });
+                document.body.appendChild(editDialog);
+                editDialog.open();
+              }
+            }
+          ];
+          T.showPreloader = false;
+        });
+      },
+      action: function (event) {
+        var T = this;
+        var action = event.target.getAttribute('action');
+        switch (action) {
+          case 'assignToQA':
+            tasks.updateTask(this.id, {status_id: tasks.STATUS.QA}).then(function (res) {
+              T.updateView();
+            });
+            break;
+          case 'assignToMe':
+            tasks.updateTask(this.id, {status_id: tasks.STATUS.NEW, assigned_to_id: tasks.config.userId}).then(function (res) {
+              T.updateView();
+            });
+            break;
+          case 'assign':
+            var searchDialog = new TDUserChooser();
+            searchDialog.addEventListener('select', function (e) {
+              tasks.updateTask(T.id, {status_id: tasks.STATUS.ASSIGNED, assigned_to_id: e.detail.id}).then(function (res) {
+                T.updateView();
+              });
+              searchDialog.remove();
+            });
+            document.body.appendChild(searchDialog);
+            searchDialog.show();
+            break;
+          case 'start':
+            tasks.updateTask(this.id, {status_id: tasks.STATUS.INPROGRESS}).then(function (res) {
+              T.updateView();
+            });
+            break;
+          case 'stop':
+            tasks.updateTask(this.id, {status_id: tasks.STATUS.POSTPONED}).then(function (res) {
+              T.updateView();
+            });
+            break;
+          case 'watch':
+            break;
+          case 'unwatch':
+            break;
+          case 'close':
+            tasks.updateTask(this.id, {status_id: tasks.STATUS.CLOSED}).then(function (res) {
+              T.updateView();
+            });
+            break;
+          default:
+            console.log('unknown action')
+        }
+      },
+      formatText: function(val) {
+        if (!val) return '';
+        val = val.replace(
+          /((http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?)/g,
+          '"$1":$1'
+        );
+        val = textile.parse(val);
+        //val = val.replace("\n",'<br/>');*/
+        return val;
+      },
+      formatTime: function (val) {
+        var d = moment(val);
+        moment.locale("ru");
+        return d.format("ll");
+      }
+    });
+  </script>
+</dom-module>

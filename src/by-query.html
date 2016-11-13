@@ -1,0 +1,50 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="components/tasklist.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="page-by-query">
+  <template>
+    <app-route route="[[route]]" pattern="/by-query/:query" data="{{routeData}}"></app-route>
+
+    <td-preloader display="[[showPreloader]]"></td-preloader>
+    <td-tasklist tasks=[[tasks]]></td-tasklist>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'page-by-query',
+      properties: {
+        title:{
+          type: String,
+          notify: true
+        },
+        currentProject: {
+          type: Number,
+          notify: true
+        }
+      },
+      observers: [
+        'routeChanged(routeData.query)',
+      ],
+      ready:function () {
+        console.log(this.route);
+      },
+      routeChanged: function (query) {
+        var T = this;
+        if (query == T.loadedQuery) return;
+        T.showPreloader = true;
+        var queryPromise = tasks.queries.fetchById(query).then(function (q) {
+          T.title = q.name;
+        });
+        tasks.fetchByQuery(T.routeData.query).then(function (tasks) {
+          T.tasks = tasks;
+          T.loadedQuery = query;
+          queryPromise.then(function () {
+            T.showPreloader = false;
+          });
+        });
+      }
+    });
+  </script>
+</dom-module>

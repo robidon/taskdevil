@@ -1,0 +1,124 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+
+<dom-module id="td-userchooser">
+  <template>
+    <style>
+    #userSearchDialog {
+    	width: 90%;
+    }
+    </style>
+    <paper-dialog raised id="userSearchDialog" on-iron-overlay-opened="patchOverlay" role="dialog" class="paper-dialog" with-backdrop always-on-top>
+
+	    <paper-input label="Поиск участника по имени" on-keyup="queueFilter"></paper-input>
+
+  		<paper-dialog-scrollable>
+  			<div role="listbox" >
+  				<template is="dom-repeat" items="{{userSearchResults}}">
+  					<paper-item item-id='[[item.id]]' item-name='[[item.name]]' on-tap="choose">[[item.name]]</paper-item>
+  				</template>
+  			</div>
+  		</paper-dialog-scrollable>
+
+  	</paper-dialog>
+
+
+  </template>
+
+  <script>
+    var TDUserChooser = Polymer({
+      is: 'td-userchooser',
+      properties: {
+      	callback:{
+      		type:Function
+      	}
+      },
+      ready: function () {
+        var T = this;
+        T.allUsers = [];
+        T.userSearchResults = T.allUsers.slice();
+        tasks.users.fetchAll().then(function (users) {
+        	T.allUsers = users;
+        	T.userSearchResults = T.allUsers.slice();
+        });
+      },
+      show: function () {
+      	this.$.userSearchDialog.open();
+      },
+      choose: function (e) {
+      	this.$.userSearchDialog.close();
+      	this.fire('select', {id:e.target.itemId, name:e.target.itemName} )
+      },
+      filter:function (val) {
+      	if (!val) {
+      		this.userSearchResults = this.allUsers.slice();
+      		return;
+      	}
+        val = escapeRegExp(val);
+      	var startRegExp = new RegExp('^'+val,"ig");
+      	var innerRegExp = new RegExp('\\s'+val,"ig");
+      	this.userSearchResults = _.filter(this.allUsers, function (u) {
+      		return (startRegExp.test(u.name) || innerRegExp.test(u.name));
+      	});
+      },
+      queueFilter: function (e) {
+      	this.filter(e.target.inputElement.value);
+      },
+      patchOverlay: function (e) {
+		  if (e.target.withBackdrop) {
+		    try {
+		    	e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
+		    } catch (exc) {
+
+		    }
+		  }
+		},
+    });
+	</script>
+
+</dom-module>
+
+<dom-module id="td-user-select">
+
+  <template>
+    <paper-input-container>
+      <label>[[label]]</label>
+      <input is="iron-input" value="{{username}}" disabled/>
+      <paper-icon-button suffix icon="icons:search" on-tap="showSearchUserDialog"></paper-icon-button>
+    </paper-input-container>
+  </template>
+
+  <script type="text/javascript">
+  Polymer({
+    is:'td-user-select',
+    properties: {
+      value: {
+        type:Number,
+        notify:true
+      },
+      username: {
+        type:String,
+        notify:true
+      },
+      label: {
+        type:String,
+        notify:false
+      }
+    },
+    showSearchUserDialog:function (event) {
+      var searchDialog = new TDUserChooser();
+      var T = this;
+      searchDialog.addEventListener('select', function (e) {
+        var input = _.find(event.target.parentNode.childNodes, function (el) {
+          return el.tagName=="INPUT";
+        });
+        T.value = e.detail.id;
+        T.username = e.detail.name;
+        searchDialog.remove();
+      });
+      document.body.appendChild(searchDialog);
+      searchDialog.show();
+    },
+  })
+  </script>
+</dom-module>

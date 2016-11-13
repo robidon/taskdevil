@@ -1,0 +1,111 @@
+<dom-module id="td-taskedit">
+  <template>
+    <paper-dialog id="dialog" on-iron-overlay-opened="patchOverlay" on-iron-overlay-closed="dismissDialog" modal auto-fit-on-attach>
+      <h2>Изменить</h2>
+      <paper-dialog-scrollable>
+        
+        <paper-textarea id="subject" label="Тема" value="{{formdata.subject}}"></paper-textarea>
+        <paper-textarea id="description" label="Описание" value="{{formdata.description}}"></paper-textarea>
+
+        <paper-input id="parent_id" label="Родительская задача" value="{{formdata.parent_id}}"></paper-input>
+        
+        <paper-dropdown-menu label="Трекер">
+          <paper-listbox class="dropdown-content" selected="{{formdata.tracker_id}}" attr-for-selected='itemid'>
+            <template is="dom-repeat" items="[[tasksTrackers]]">
+              <paper-item itemid='[[item.id]]'>[[item.name]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+
+        <paper-dropdown-menu label="Статус">
+          <paper-listbox class="dropdown-content" id="status_id" selected="{{formdata.status_id}}" attr-for-selected='itemid'>
+            <template is="dom-repeat" items="[[tasksStatuses]]">
+              <paper-item itemid='[[item.id]]'>[[item.name]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+
+        <paper-dropdown-menu label="Приоритет">
+          <paper-listbox class="dropdown-content" id="priority_id" selected="{{formdata.priority_id}}" attr-for-selected='itemid'>
+            <template is="dom-repeat" items="[[tasksPriorities]]">
+              <paper-item itemid='[[item.id]]'>[[item.name]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+
+        <td-project-select id="project_id" label="Проект" value="{{formdata.project_id}}" projectname="[[data.project.name]]"></td-project-select>
+        <td-user-select id="author_id" label="Автор" value="{{formdata.author_id}}" username="[[data.author.name]]"></td-user-select>
+        <td-user-select id="assigned_to_id" label="Назначена" value="{{formdata.assigned_to_id}}" username="[[data.assigned_to.name]]"></td-user-select>
+
+        <label>Прогресс</label>
+        <paper-slider class="red" value="{{formdata.done_ratio}}" max="100" editable></paper-slider>
+
+      </paper-dialog-scrollable>
+      <div class="buttons">
+        <paper-button dialog-dismiss><spring:message code="no" />Отмена</paper-button>
+        <paper-button dialog-confirm autofocus><spring:message code="yes" />Применить</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script type="text/javascript">
+    var TDTaskEditDialog = Polymer({
+      is:'td-taskedit',
+      properties:{
+        data:{
+          type:Object,
+          notify:true,
+          observer: "dataChanged"
+        }
+      },
+      ready: function () {
+        this.tasksStatuses = _.values(tasks.statuses);
+        this.tasksTrackers = _.values(tasks.trackers);
+        this.tasksPriorities = _.values(tasks.priorities);
+      },
+      dataChanged: function () {
+        var T = this;
+        this.formdata = {
+          subject:T.data.subject,
+          description:T.data.description,
+          parent_id:T.data.parent ? T.data.parent.id : 0,
+          status_id:T.data.status.id,
+          tracker_id:T.data.tracker.id,
+          priority_id:T.data.priority.id,
+          author_id:T.data.author.id,
+          assigned_to_id:T.data.assigned_to.id,
+          done_ratio:T.data.done_ratio,
+        };
+        console.log('data changed');
+        this.resetData = _.cloneDeep(this.formdata);
+        this.statusIndex = _.findIndex(this.tasksStatuses, function (el) { el.id == T.data.status.id; });
+        this.trackerIndex = _.findIndex(this.tasksTrackers, function (el) { el.id == T.data.tracker.id; });
+      },
+      open:function () {
+        this.$.dialog.open();
+      },
+      dismissDialog:function (e) {
+        var T = this;
+        if (e.detail.confirmed) {
+          var changed = _.reduce(T.formdata, function(result, value, key) {
+              return _.isEqual(value, T.resetData[key]) ?
+                  result : result.concat(key);
+          }, []);
+          var changes = {};
+          changed.forEach(function (key) {
+            changes[key] = T.formdata[key];
+          })
+          this.fire('save', changes);
+        }
+      },
+      patchOverlay: function (e) {
+        if (e.target.withBackdrop) {
+          try {
+            e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
+          } catch (exc) {
+
+          }
+        }
+      }
+    });
+  </script>
+</dom-module>

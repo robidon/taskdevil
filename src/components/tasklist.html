@@ -1,0 +1,17 @@
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="tasklistitem.html">
+
+<dom-module id="td-tasklist">
+  <template>
+    <div role="listbox" multi>
+      <template is="dom-repeat" items="{{tasks}}">
+        <td-tasklistitem data=[[item]]></td-tasklistitem>
+      </template>
+    </div>
+  </template>
+  <script type="text/javascript">
+    Polymer({
+      is:'td-tasklist'
+    })
+  </script>
+</dom-module>

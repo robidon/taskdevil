@@ -1,0 +1,133 @@
+<dom-module id="td-menu-search">
+
+  <template>
+    <style include="menu-styles">
+      .menuGroupTitle {
+        color:#999;
+        padding:0 16px;
+        font-size:14px;
+      }
+    </style>
+    <div class="tabHeader">
+      <paper-input label="Поиск по проекту" placeholder="Найти задачи" type="search" id="search" value="{{search}}">
+        <paper-icon-button prefix icon="icons:search"></paper-icon-button>
+      </paper-input>
+      <paper-listbox>
+        <template is="dom-if" if=[[search]]>
+          <span class="menuGroupTitle">Поиск задач</span>
+          <paper-item><a href$='/task-info/[[search]]' drawer-toggle>По # "[[search]]"...</a></paper-item>
+          <hr/>
+          <template is="dom-if" if=[[searchProjects.length]]>
+            <span class="menuGroupTitle">В проектах:</span>
+          </template>
+          <template is="dom-if" if=[[!searchProjects.length]]>
+            <span class="menuGroupTitle">Проекты "[[search]]" не найдены</span>
+          </template>
+        </template>
+        <template is="dom-if" if=[[searchProjects.length]]>
+          <td-menu-search-submenu items=[[searchProjects]]></td-menu-search-submenu>
+        </template>
+      </paper-listbox>
+    </div>
+    <div class="tabContent">
+      content goes here
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'td-menu-search',
+      properties: {
+        'search': {
+          type:String,
+          observer:"searchChange"
+        }
+      },
+      ready: function () {
+        var T = this;
+        T.projects = [];
+        T.searchProjects = [];
+        T.projectsTree = [];
+        tasks.projects.fetchAll().then(function (projects) {
+          T.projects = projects;
+          T.updateProjectsTree();
+          T.searchProjects = T.projectsTree.slice();
+        });
+      },
+      updateProjectsTree: function () {
+        this.projectsTree = [];
+        var T = this;
+        this.projects.forEach( function (el) {
+          var nameitems = el.name.split(' ');
+          el.chars = (nameitems.length>1) ? (nameitems[0][0] + nameitems[nameitems.length-1][0]) : nameitems[0][0];
+          if (el.parent) {
+            var parent = _.find(T.projects, function (p) {
+              return p.id == el.parent.id;
+            });
+            if (!parent.children) {
+              parent.children = [];
+            }
+            parent.children.push(el);
+          }
+        });
+        this.projects.forEach( function (el) {
+          if (!el.parent) {
+            T.projectsTree.push(el);
+          }
+        });
+      },
+      searchChange: function () {
+        var val = this.search;
+        if (!val) {
+          this.searchProjects = this.projectsTree ? this.projectsTree.slice() : [];
+          return;
+        }
+        val = escapeRegExp(val);
+        var startRegExp = new RegExp('^'+val,"ig");
+        var innerRegExp = new RegExp('\\s'+val,"ig");
+        this.searchProjects = _.filter(this.projects, function (p) {
+          return (startRegExp.test(p.name) || innerRegExp.test(p.name));
+        });
+      }
+    });
+  </script>
+</dom-module>
+
+<dom-module id="td-menu-search-submenu">
+  <template>
+    <style include="menu-styles">
+      .smallIcon {
+        --iron-icon-fill-color: #c0c0c0;
+        --iron-icon-height: 20px;
+        --iron-icon-width: 20px;
+      }
+      .submenu {
+        padding-left:5px;
+      }
+    </style>
+    <paper-menu class="submenu">
+      <template is="dom-repeat" items="[[items]]">
+        <template is="dom-if" if="[[item.children.length]]">
+          <paper-submenu>
+            <paper-item class="menu-trigger">
+              <a href="/by-project/[[item.id]]" drawer-toggle>[[item.name]]</a>
+              <span style="flex:1"></span>
+              <iron-icon class="smallIcon" icon="icons:folder"></iron-icon>
+            </paper-item>
+            <td-menu-search-submenu class="menu-content" items=[[item.children]]></td-menu-search-submenu>
+          </paper-submenu>
+        </template>
+        <template is="dom-if" if="[[!item.children.length]]">
+          <a href="/by-project/[[item.id]]" drawer-toggle><paper-item>
+            [[item.name]]
+          </paper-item></a>
+        </template>
+      </template>
+    </paper-menu>
+  </template>
+  <script>
+    Polymer({
+      is: 'td-menu-search-submenu'
+    });
+  </script>
+</dom-module>

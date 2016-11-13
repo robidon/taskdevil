@@ -1,0 +1,21 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="components/tasklist.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="page-today">
+  <template>
+    <td-tasklist tasks=[[tasks]]></td-tasklist>
+  </template>
+  <script>
+    Polymer({
+      is: 'page-today',
+      ready: function () {
+        var T = this;
+        tasks.fetchAll().then(function (tasks) {
+          T.tasks = tasks;
+        });
+      }
+    });
+  </script>
+</dom-module>

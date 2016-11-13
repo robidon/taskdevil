@@ -1,0 +1,124 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+
+<dom-module id="td-projectchooser">
+  <template>
+    <style>
+    #projectSearchDialog {
+      width: 90%;
+    }
+    </style>
+    <paper-dialog raised id="projectSearchDialog" on-iron-overlay-opened="patchOverlay" role="dialog" class="paper-dialog" with-backdrop always-on-top>
+
+      <paper-input label="Поиск проекта по названию" on-keyup="queueFilter"></paper-input>
+
+      <paper-dialog-scrollable>
+        <div role="listbox">
+          <template is="dom-repeat" items="{{projectSearchResults}}">
+            <paper-item item-id='[[item.id]]' item-name='[[item.name]]' on-tap="choose">[[item.name]]</paper-item>
+          </template>
+        </div>
+      </paper-dialog-scrollable>
+
+  </paper-dialog>
+
+
+  </template>
+
+  <script>
+    var TDProjectChooser = Polymer({
+      is: 'td-projectchooser',
+      properties: {
+        callback:{
+          type:Function
+        }
+      },
+      ready: function () {
+        var T = this;
+        T.allProjects = [];
+        T.projectSearchResults = T.allProjects.slice();
+        tasks.projects.fetchAll().then(function (projects) {
+          T.allProjects = projects;
+          T.projectSearchResults = T.allProjects.slice();
+        });
+      },
+      show: function () {
+        this.$.projectSearchDialog.open();
+      },
+      choose: function (e) {
+        this.$.projectSearchDialog.close();
+        this.fire('select', {id:e.target.itemId, name:e.target.itemName} )
+      },
+      filter:function (val) {
+        if (!val) {
+          this.projectSearchResults = this.allProjects.slice();
+          return;
+        }
+        val = escapeRegExp(val);
+        var startRegExp = new RegExp('^'+val,"ig");
+        var innerRegExp = new RegExp('\\s'+val,"ig");
+        this.projectSearchResults = _.filter(this.allProjects, function (p) {
+          return (startRegExp.test(p.name) || innerRegExp.test(p.name));
+        });
+      },
+      queueFilter: function (e) {
+        this.filter(e.target.inputElement.value);
+      },
+      patchOverlay: function (e) {
+      if (e.target.withBackdrop) {
+        try {
+          e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
+        } catch (exc) {
+
+        }
+      }
+    },
+    });
+  </script>
+
+</dom-module>
+
+<dom-module id="td-project-select">
+
+  <template>
+    <paper-input-container>
+      <label>[[label]]</label>
+      <input is="iron-input" value="{{projectname}}" disabled/>
+      <paper-icon-button suffix icon="icons:search" on-tap="showSearchProjectDialog"></paper-icon-button>
+    </paper-input-container>
+  </template>
+
+  <script type="text/javascript">
+  Polymer({
+    is:'td-project-select',
+    properties: {
+      value: {
+        type:Number,
+        notify:true
+      },
+      projectname: {
+        type:String,
+        notify:true
+      },
+      label: {
+        type:String,
+        notify:false
+      }
+    },
+    showSearchProjectDialog:function (event) {
+      var searchDialog = new TDProjectChooser();
+      var T = this;
+      searchDialog.addEventListener('select', function (e) {
+        var input = _.find(event.target.parentNode.childNodes, function (el) {
+          return el.tagName=="INPUT";
+        });
+        T.value = e.detail.id;
+        T.projectname = e.detail.name;
+        searchDialog.remove();
+      });
+      document.body.appendChild(searchDialog);
+      searchDialog.show();
+    },
+  })
+  </script>
+</dom-module>

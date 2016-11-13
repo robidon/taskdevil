@@ -1,0 +1,59 @@
+<link rel="import" href="user.html">
+<link rel="import" href="queries.html">
+<link rel="import" href="search.html">
+<link rel="import" href="styles.html">
+
+<dom-module id="td-menu">
+  <template>
+    <style include="menu-styles">
+      .filters {
+        margin: 0 0px;
+        background:#f0f0f0;
+        border:1px solid #c9c9c9;
+        border-radius: 8px;
+      }
+      .filters a {
+        display: block;
+
+        padding: 0 8px;
+
+        text-decoration: none;
+
+        color: var(--app-secondary-color);
+
+        line-height: 40px;
+      }
+      .filters .flex {
+        padding:0 8px;
+      }
+    </style>
+
+      <div>
+
+        <paper-tabs selected="{{selectedMenuTab}}" fallback-selection="0">
+          <paper-tab><paper-icon-button icon="list"></paper-icon-button></paper-tab>
+          <paper-tab><paper-icon-button icon="notification:folder-special"></paper-icon-button></paper-tab>
+          <paper-tab><paper-icon-button icon="search"></paper-icon-button></paper-tab>
+          <paper-tab><paper-icon-button icon="settings"></paper-icon-button></paper-tab>
+        </paper-tabs>
+        <iron-pages selected="{{selectedMenuTab}}">
+
+          <td-menu-user></td-menu-user>
+          <td-menu-queries></td-menu-queries>
+          <td-menu-search></td-menu-search>
+
+          <div>
+            <a name="settings" href="/settings">Настройки</a>
+          </div>
+
+        </iron-pages>
+
+      </div>
+
+  </template>
+  <script type="text/javascript">
+  Polymer({
+    is: 'td-menu'
+  })
+  </script>
+</dom-module>

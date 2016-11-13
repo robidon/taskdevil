@@ -14,8 +14,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <dom-module id="shared-styles">
   <template>
     <style>
+      :root {
+        --td-priority-color-10: var(--paper-grey-300);
+        --td-priority-color-3: var(--paper-blue-grey-300);
+        --td-priority-color-4: var(--paper-teal-300);
+        --td-priority-color-5: var(--paper-amber-300);
+        --td-priority-color-6: var(--paper-red-300);
+      }
+      a:visited, a {
+        color: var(--paper-indigo-400);
+        text-decoration: none;
+      }
       .card {
-        margin: 24px;
+        margin: 12px;
         padding: 16px;
 
         color: #757575;
@@ -40,6 +51,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         line-height: 64px;
       }
 
+      .circle.s {
+        width:32px;
+        height:32px;
+        font-size:15px;
+        line-height: 32px;
+      }
+
       h1 {
         margin: 16px 0;
 
@@ -47,6 +65,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         font-size: 22px;
       }
+      .inherit {
+        color: inherit;
+        background-color: inherit;
+      }
+      /* IE 10 support for HTML5 hidden attr */
+      [hidden] {
+        display: none !important;
+      }
+
     </style>
   </template>
 </dom-module>
