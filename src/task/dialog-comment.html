@@ -1,0 +1,46 @@
+<dom-module id="td-task-dialog-comment">
+  <template>
+    <style>
+      #dialog {
+        min-width: 90%;
+        margin:24px 16px;
+      }
+    </style>
+    <paper-dialog id="dialog" on-iron-overlay-opened="patchOverlay" on-iron-overlay-closed="dismissDialog" modal auto-fit-on-attach>
+      <div class="dialog-content">
+        <paper-textarea id="newCommentValue" autofocus value={{newCommentValue}} placeholder="Напишите коментарий здесь" label="Новый комментарий"></paper-textarea>
+      </div>
+      <div class="buttons">
+        <paper-button id="cancelBtn" dialog-dismiss>Отмена</paper-button>
+        <paper-button id="sendBtn" dialog-confirm>Отправить</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script type="text/javascript">
+  var TDTaskDialogComment = Polymer({
+    is:'td-task-dialog-comment',
+    ready:function () {
+      this.newCommentValue = '';
+    },
+    patchOverlay: function (e) {
+      if (e.target.withBackdrop) {
+        try {
+          e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
+        } catch (exc) {}
+      }
+    },
+    open:function () {
+      document.body.appendChild(this);
+      this.$.dialog.open();
+    },
+    dismissDialog:function (e) {
+      var T = this;
+      if (e.detail.confirmed) {
+        this.fire('comment', T.newCommentValue);
+      }
+      this.fire('dismiss');
+      this.remove();      
+    }
+  })
+  </script>
+</dom-module>

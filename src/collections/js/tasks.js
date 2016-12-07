@@ -1,38 +1,8 @@
-/*
-
-Данные берутся через server side proxy, написанным на nodejs в файле proxy.js на cors-anywhere 
-При релизе надо переделать забор данных с редмайна на jsonp, если версия редмайна позволяет (более 2.1 вроде)
-Если версия редмайна не позволяет, то придётся так же юзать корс, но с определенными ограничениями, какие домены можно запрашивать, а какие нельзя
-
-*/
-jQuery.ajaxPrefilter(function(options) {
-    if (options.crossDomain && jQuery.support.cors) {
-        options.url = 'http://127.0.0.1:8081/' + options.url;//'http://192.168.1.72:8081/' + options.url;
-    }
-});
-function debounce(func, wait, immediate) {
-	var timeout;
-	return function() {
-		var context = this, args = arguments;
-		var later = function() {
-			timeout = null;
-			if (!immediate) func.apply(context, args);
-		};
-		var callNow = immediate && !timeout;
-		clearTimeout(timeout);
-		timeout = setTimeout(later, wait);
-		if (callNow) func.apply(context, args);
-	};
-};
-function escapeRegExp(str) {
-  return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-}
-
-var teammates = {};
-var tasks = {};
 (function () {
+	
 	var issues = [];
 	var users = [];
+	var currentUser = {};
 	var projects = [];
 	var queries = [];
 	var _config = {
@@ -57,7 +27,6 @@ var tasks = {};
 		});
 	};
 	var _put = function(resource, params, success, error) {
-		var qs = '';
 		params['key'] = _config.apiKey;
 		$.ajax({
 		    url: _config.redmineUrl + "/"+resource+".json",
@@ -68,160 +37,51 @@ var tasks = {};
 		    error: error
 		});
 	};
-
-	tasks = {
-		config: _.extend ({},_config),
-		STATUS: {
-			NEW:1, // новый
-			ASSIGNED:2, // назначен
-			INPROGRESS:3, // в процессе
-			CLOSED:5, // закрыт
-			QA:8, // в отделе QA
-			RETURNED:7, // обратная связь
-			POSTPONED:9, // отложено
-			CHECK:10, // проверка менеджером
-			TESTDESIGN:23// тест-дизайн
-		},
-		trackers: {
-      4: {
-      	id: 4,
-      	name: 'Defect',
-      	icon: 'icons:bug-report'
-      },
-      5: {
-      	id: 5,
-      	name: 'Testing',
-      	icon: 'icons:search'
-      },
-      9: {
-      	id: 9,
-      	name: 'Develop Task',
-      	icon: 'icons:build' // develop
+	var _post = function(resource, params, success, error) {
+		params['key'] = _config.apiKey;
+		$.ajax({
+		    url: _config.redmineUrl + "/"+resource+".json",
+		    method:'POST',
+		    dataType: "json",
+		    data: params,
+		    success: success,
+		    error: error
+		});
+	};
+	var _delete = function(resource, params, success, error) {
+		var qs = '';
+		for (var p in params) {
+			qs += '&'+p+'='+params[p];
+		}
+		params['key'] = _config.apiKey;
+		$.ajax({
+		    url: _config.redmineUrl + "/"+resource+".json?key="+_config.apiKey+qs,
+		    method:'DELETE',
+		    dataType: "text",
+		    data: params,
+		    success: success,
+		    error: error
+		});
+	};
+	var _upload = function (file, success, error, progress) {
+		$.ajax({
+      url:  _config.redmineUrl + '/uploads.json?key=' + _config.apiKey,
+      type: 'POST',
+      contentType: 'application/octet-stream',  
+      data: file,
+      processData: false,
+      xhr: function() {
+        var xhr = $.ajaxSettings.xhr();
+        xhr.upload.onprogress = progress
+        return xhr;
     	},
-      24: {
-      	id: 24,
-      	name: 'Complaint',
-      	icon: 'icons:report-problem' // complaint
-      },
-      29: {
-      	id: 29,
-      	name: 'Design Task',
-      	icon: 'image:brush' // design
-      },
-      30: {
-      	id: 30,
-      	name: 'Massive Failure',
-      	icon: 'maps:directions-run' // massive failure
-      },
-      31: {
-      	id: 31,
-      	name: 'UX Defect',
-      	icon: 'icons:help' // ux defect
-      }
-		},
-		statuses: {
-			1: {
-				id: 1,
-				name: 'Новый',
-				icon: 'av:new-releases'
-			},
-			2: {
-				id: 2,
-				name: 'Назначен',
-				icon: 'icons:assignment-ind'
-			},
-			3: {
-				id: 3,
-				name: 'В процессе',
-				icon: 'av:play-arrow'
-			},
-			5: {
-				id: 5,
-				name: 'Закрыт',
-				icon: 'icons:done'
-			},
-			7: {
-				id: 7,
-				name: 'Обратная связь',
-				icon: 'icons:question-answer'
-			},
-			8: {
-				id: 8,
-				name: 'В отделе QA',
-				icon: 'icons:search'
-			},
-			9: {
-				id: 9,
-				name: 'Отложено',
-				icon: 'av:pause'
-			},
-			10: {
-				id: 10,
-				name: 'Проверка менеджером',
-				icon: 'icons:question-answer'
-			},
-			23: {
-				id: 23,
-				name: 'Тест-дизайн',
-				icon: 'icons:verified-user'
-			}
-		},
-		priorities: {
-			10: {
-				id: 10,
-				name: 'Очень низкий'
-			},
-			3: {
-				id: 3,
-				name: 'Низкий'
-			},
-			4: {
-				id: 4,
-				name: 'Средний'
-			},
-			5: {
-				id: 5,
-				name: 'Высокий'
-			},
-			6: {
-				id: 6,
-				name: 'Критический'
-			}
-		},
-		/*statusIcons: {
-      5: 'icons:done',
-      12: 'icons:done', // closed
-      2: 'icons:assignment-ind',
-      14: 'icons:assignment-ind', // assigned
-      3: 'av:play-arrow',
-      15: 'av:play-arrow', // in progress
-      1: 'av:new-releases',
-      11: 'av:new-releases', //new
-      8: 'icons:search',
-      7: 'icons:question-answer',
-      10: 'icons:question-answer',
-      16: 'icons:question-answer', // feedback
-      9: 'av:pause',
-      17: 'av:pause', // postponed
-      23: 'icons:verified-user',
-      13: 'icons:verified-user', //resolved
-    },*/
-		PRIORITY: {
-			LOWEST:10,
-			LOW:3,
-			AVERAGE:4,
-			HIGH:5,
-			HIGHEST:6
-		},
-		TRACKER: {
-			TESTING:5,
-			DEFECT:4,
-			DEVELOP:9,
-			COMPLAINT:24,
-			DESIGN:29,
-			MASSIVEFAILURE:30,
-			UXDEFECT:31,
-		},
+      success: success,
+      error: error
+    });
+	}
+
+	tasks = _.extend(tasks, {
+		config: _.extend ({},_config),
 		updateConfig: function (update) {
 			_config = _.assign(_config, update);
 			this.config = _.extend({},_config);
@@ -232,7 +92,7 @@ var tasks = {};
 				_query('issues', {'assigned_to_id':'me'}, function (response) {
 					resolve(response.issues);
 				}, function (error) {
-					throw new Error("unable to fetch issues");
+					reject("Задачи не найдены");
 				});
 			});
 		},
@@ -242,7 +102,7 @@ var tasks = {};
 				_query('issues', {'project_id':project}, function (response) {
 					resolve(response.issues);
 				}, function (error) {
-					throw new Error("unable to fetch issues");
+					reject("Задачи не найдены");
 				});
 			});
 		},
@@ -252,7 +112,7 @@ var tasks = {};
 				_query('issues', {'assigned_to_id':user}, function (response) {
 					resolve(response.issues);
 				}, function (error) {
-					throw new Error("unable to fetch issues");
+					reject("Задачи не найдены");
 				});
 			});
 		},
@@ -266,7 +126,7 @@ var tasks = {};
 				_query('issues', params, function (response) {
 					resolve(response.issues);
 				}, function (error) {
-					throw new Error("unable to fetch issues");
+					reject("Задачи не найдены");
 				});
 			});
 		},
@@ -276,7 +136,7 @@ var tasks = {};
 				_query('issues', params, function (response) {
 					resolve(response.issues);
 				}, function (error) {
-					throw new Error("unable to fetch issues");
+					reject("Задачи не найдены");
 				});
 			});
 		},
@@ -286,7 +146,7 @@ var tasks = {};
 				_query("issues/"+id, {include:'watchers,children,attachments,relations,watchers,changesets,journals'}, function (response) {
 					resolve(response.issue);
 				}, function (error) {
-					throw new Error("unable to fetch issue #"+id);
+					reject("Задача не найдена #" + taskId);
 				});
 			});
 		},
@@ -296,9 +156,75 @@ var tasks = {};
 				_put("issues/"+id, {issue:fields}, function (response) {
 					resolve();
 				}, function (error) {
-					throw new Error("unable to update issue #"+id);
+					reject("Не получилось обновить задачу #" + id);
 				});
 			});
+		},
+		addTask: function (data) {
+			var T = this;
+			if (data.parent_issue_id == 0) delete data.parent_issue_id;
+			if (data.done_ratio == 0) delete data.done_ratio;
+			if (data.assigned_to_id == 0) delete data.assigned_to_id;
+			if (data.status_id == 0) delete data.status_id;
+			//console.log(data);
+			//return;
+			return new Promise(function (resolve, reject) {
+				_post("issues", {issue:data}, function (response) {
+					resolve(response.issue);
+				}, function (error) {
+					var errText = '';
+					if (error.responseJSON) {
+						errText = error.responseJSON.errors.join('; ');
+					} else {
+						errText = 'Трекер не должен быть пустым'
+					}
+					reject(errText);
+				});
+			});
+		},
+		attachments: {
+			upload:function (file, onProgress) {
+				var T = this;
+				return new Promise(function (resolve, reject) {
+					_upload(file, function (response) {
+						//console.log(response.upload);
+						response.upload.filename = file.name;
+						response.upload.content_type = file.type;
+						resolve(response.upload);
+					}, function (error) {
+						var errText = '';
+						if (error.responseJSON) {
+							errText = error.responseJSON.errors.join('; ');
+						} else {
+							errText = 'Трекер не должен быть пустым'
+						}
+						reject(errText);
+					}, onProgress);
+				});
+			},
+			add: function (taskId, uploads) {
+				return new Promise(function (resolve, reject) {
+					/*"uploads": [
+			      {"token": "7167.ed1ccdb093229ca1bd0b043618d88743", "filename": "image.png", "content_type": "image/png"}
+			    ];*/
+			    console.log(taskId, uploads);
+					_put("issues/"+taskId, {attachments:uploads}, function (response) {
+						console.log(response);
+						resolve();
+					}, function (error) {
+						reject("Не получилось обновить задачу #" + taskId);
+					});
+				})
+			},
+			delete: function (attachmentId) {
+				return new Promise(function (resolve, reject) {
+					_delete('attachments/'+attachmentId, {}, function (response) {
+						console.log('deleted');
+					}, function (error) {
+						reject("Не получилось удалить аттач #" + attachmentId);
+					});
+				});
+			}
 		},
 		queries: {
 			fetchAll: function () {
@@ -382,23 +308,46 @@ var tasks = {};
 						});
 						resolve(users);
 					}, function (error) {
-						throw new Error("unable to fetch teammates");
+						reject("Пользователи не найдены");
 					});
 				});
 			},
+      fetchAllWithGroups:function () {
+        return new Promise(function (resolve, reject) {
+          _query("projects/fs2/memberships", {limit:100}, function (response) {
+            results = [];
+            response.memberships.forEach(function (m) {
+              if (m.user) {
+                results.push(m.user);
+              } else if (m.group) {
+                results.push(m.group);
+              }
+            });
+            resolve(results);
+          }, function (error) {
+            reject("Пользователи не найдены");
+          });
+        });
+      },
 			getById: function (id) {
 				var ind = _.findIndex(users, function (u) {
 					return u.id == id;
 				});
-				if (ind==-1) throw new Error("unable to find user by id: "+ id);
+				if (ind==-1) throw new Error("Пользователь не найден #"+ id);
 				return users[ind];
 			},
 			fetchCurrent:function() {
 				return new Promise(function (resolve, reject) {
+					if (!_.isEmpty(currentUser)) {
+						resolve(currentUser);
+						return;
+					}
 					_query("users/current", {}, function (response) {
+						currentUser = response.user;
+						tasks.updateConfig({user:{id:currentUser.id,name:currentUser.lastname + ' ' + currentUser.firstname}});
 						resolve(response.user);
 					}, function (error) {
-						throw new Error("unable to fetch current user info");
+						reject("Не получилось запросить информацию о текущем пользователе");
 					});
 				});
 			},
@@ -406,5 +355,5 @@ var tasks = {};
 
 			}
 		}
-	};
+	});
 })();

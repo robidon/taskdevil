@@ -1,8 +1,20 @@
-<html><head></head><body><dom-module id="html-echo">
+<dom-module id="html-echo">
   <template>
     <span id="content"></span>
   </template>
+  <script>
+  Polymer({
+    is:"html-echo",
+    properties:{
+      html:{
+        type:String,
+        observer:"htmlChanged"
+      }
+    },
+    htmlChanged:function(t){
+      this.$.content.innerHTML=t;
+    }
+  });
+  </script>
 </dom-module>
 
-<script>!function(){Polymer({is:"html-echo",properties:{html:{type:String,observer:"htmlChanged"}},htmlChanged:function(t){this.$.content.innerHTML=t}})}();</script>
-</body></html>

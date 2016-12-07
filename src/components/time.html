@@ -1,0 +1,22 @@
+<dom-module id="td-time">
+  <template>[[formattedTime]]</template>
+  <script type="text/javascript">
+  Polymer ({
+    is:'td-time',
+    properties:{
+      time:{
+        type:String,
+        observer:"timeChanged"
+      }
+    },
+    timeChanged:function () {
+      this.formattedTime = this.formatTime(this.time);
+    },
+    formatTime:function (time) {
+      var d = moment(time);
+      moment.locale("ru");
+      return d.format("ll");
+    }
+  })
+  </script>
+</dom-module>

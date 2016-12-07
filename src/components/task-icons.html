@@ -1,0 +1,51 @@
+<dom-module id="td-task-status-icon">
+  <template>
+    <iron-icon icon="[[icon]]"></iron-icon>
+  </template>
+  <script type="text/javascript">
+    Polymer({
+      is:"td-task-status-icon",
+      properties: {
+        status: {
+          type:Object,
+          observer:"statusChanged"
+        }
+      },
+      statusChanged: function () {
+        this.icon = tasks.statuses[this.status.id].icon;
+      }
+    })
+  </script>
+</dom-module>
+
+<dom-module id="td-task-tracker-icon">
+  <template>
+    <style include="shared-styles"></style>
+    <iron-icon style$="width:[[size]]px; height:[[size]]px" icon="[[icon]]" class$="[[cssClass]]"></iron-icon>
+  </template>
+  <script type="text/javascript">
+    Polymer({
+      is:"td-task-tracker-icon",
+      properties: {
+        tracker: {
+          type:Object,
+          observer:"trackerChanged"
+        },
+        priority: {
+          type:Object,
+          observer:"priorityChanged"
+        },
+        size: {
+          type:Number,
+          default:12
+        }
+      },
+      trackerChanged: function () {
+        this.icon = tasks.trackers[this.tracker.id].icon;
+      },
+      priorityChanged: function () {
+        this.cssClass = 'td-priority-'+this.priority.id;
+      }
+    })
+  </script>
+</dom-module>

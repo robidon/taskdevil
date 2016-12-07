@@ -21,6 +21,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         --td-priority-color-5: var(--paper-amber-300);
         --td-priority-color-6: var(--paper-red-300);
       }
+      .td-priority-10 { color:var(--td-priority-color-10) }
+      .td-priority-3 { color:var(--td-priority-color-3) }
+      .td-priority-4 { color:var(--td-priority-color-4) }
+      .td-priority-5 { color:var(--td-priority-color-5) }
+      .td-priority-6 { color:var(--td-priority-color-6) }
       a:visited, a {
         color: var(--paper-indigo-400);
         text-decoration: none;
@@ -65,6 +70,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         font-size: 22px;
       }
+      .label {
+        color:#737373;
+        font-size:12px;
+        padding:10px 0px 0px 0px;
+      }
       .inherit {
         color: inherit;
         background-color: inherit;
@@ -74,6 +84,49 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: none !important;
       }
 
+      paper-button.custom {
+        --paper-button-ink-color: var(--paper-pink-a200);
+        /* These could also be individually defined for each of the
+          specific css classes, but we'll just do it once as an example */
+        --paper-button-flat-keyboard-focus: {
+          background-color: var(--paper-pink-a200);
+          color: white !important;
+        };
+        --paper-button-raised-keyboard-focus: {
+          background-color: var(--paper-pink-a200) !important;
+          color: white !important;
+        };
+      }
+      paper-button.custom:hover {
+        background-color: var(--paper-indigo-100);
+      }
+      paper-button.pink {
+        color: var(--paper-pink-a200);
+
+      }
+      paper-button.indigo {
+        background-color: var(--paper-indigo-500);
+        color: white;
+        --paper-button-raised-keyboard-focus: {
+          background-color: var(--paper-pink-a200) !important;
+          color: white !important;
+        };
+      }
+      paper-button.green {
+        background-color: var(--paper-green-500);
+        color: white;
+      }
+      paper-button.green[active] {
+        background-color: var(--paper-red-500);
+      }
+      paper-button.disabled {
+        color: white;
+      }
+      .emptyMessage {
+        padding:8px;
+        text-align:center;
+        color:#a9a9a9;
+      }
     </style>
   </template>
 </dom-module>

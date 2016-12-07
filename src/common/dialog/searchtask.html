@@ -1,0 +1,46 @@
+<dom-module id="td-common-dialog-searchtask">
+  <template>
+    <style>
+      #dialog {
+        min-width: 90%;
+        margin:24px 16px;
+      }
+    </style>
+    <paper-dialog id="dialog" on-iron-overlay-opened="patchOverlay" on-iron-overlay-closed="dismissDialog" modal auto-fit-on-attach>
+      <div class="dialog-content">
+        <paper-textarea id="taskIdValue" autofocus value={{taskId}} placeholder="Укажите ID задачи" label="Поиск задачи"></paper-textarea>
+      </div>
+      <div class="buttons">
+        <paper-button id="cancelBtn" dialog-dismiss>Отмена</paper-button>
+        <paper-button id="sendBtn" dialog-confirm>Готово</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script type="text/javascript">
+  var TDCommonDialogSearchTask = Polymer({
+    is:'td-common-dialog-searchtask',
+    ready:function () {
+      this.taskIdValue = '';
+    },
+    patchOverlay: function (e) {
+      if (e.target.withBackdrop) {
+        try {
+          e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
+        } catch (exc) {}
+      }
+    },
+    open:function () {
+      document.body.appendChild(this);
+      this.$.dialog.open();
+    },
+    dismissDialog:function (e) {
+      var T = this;
+      if (e.detail.confirmed) {
+        this.fire('task_found', T.taskId);
+      }
+      this.fire('dismiss');
+      this.remove();      
+    }
+  })
+  </script>
+</dom-module>

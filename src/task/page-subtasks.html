@@ -1,0 +1,90 @@
+<dom-module is="td-task-page-subtasks">
+  <template>
+    <style type="text/css" include="td-task-styles">
+      .itemIcon {
+         margin-right:6px;
+         color:#777;
+         @apply(--layout-vertical)
+         @apply(--layout-top-left)
+      }
+      .card-content {
+        padding:0px!important;
+      }
+      .actions {
+        padding:16px;
+        border-bottom:1px solid #c0c0c0;
+      }
+      paper-item {
+        --paper-item-selected-weight: normal;
+        --paper-item-selected: {
+            background:var(--paper-indigo-50);
+        };
+      }      
+    </style>
+    <div class="taskContentBlock layout vertical">
+      <paper-card class="taskContentBlockItem">
+        <div class="card-content">
+          <div class="actions layout center horizontal">
+            <div class="subpageTitle flex">Подзадачи</div>
+            <paper-icon-button on-tap="actionAddSubtask" icon="icons::add"></paper-icon-button>
+            <paper-icon-button on-tap="actionAssignSubtask" icon="icons::search"></paper-icon-button>
+          </div>
+          <template is="dom-if" if="[[task.children.length]]">
+            <paper-listbox multi>
+              <template is="dom-repeat" items="[[task.children]]">
+                <paper-item>
+                  <div>
+                    <iron-icon class="itemIcon" icon="[[item.trackerIcon]]"></iron-icon>
+                  </div>
+                  <div><a href="/task-info/[[item.id]]/details">[[item.subject]]</a></div>
+                </paper-item>
+              </template>
+            </paper-listbox>
+          </template>
+          <template is="dom-if" if="[[!task.children.length]]">
+            <div class="emptyMessage">Список пуст</div>
+          </template>
+        </div>
+      </paper-card>
+    </div>
+  </template>
+  <script type="text/javascript">
+  Polymer ({
+    is:'td-task-page-subtasks',
+    ready:function () {
+      
+    },
+    actionAddSubtask: function () {
+      var T = this;
+      var initdata = {
+        parent:this.task,
+        project:this.task.project,
+        author:tasks.config.user,
+      }
+      var shownFields = ['subject','description','parent_issue_id','tracker_id','priority_id','project_id','assigned_to_id'];
+      var editDialog = new TDTaskDialogEdit("Новая подзадача", initdata, shownFields);
+      editDialog.addEventListener('save', function (e) {
+        tasks.addTask(e.detail.data).then(function (task) {
+          T.fire("task_update");
+        }).catch(function (err) {
+          alert(err);
+        });
+      });
+      editDialog.open();
+    },
+    actionAssignSubtask: function () {
+      var T = this;
+      var searchDialog = new TDCommonDialogSearchTask();
+      searchDialog.addEventListener('task_found', function (e) {
+        var taskId = e.detail;
+        tasks.updateTask(taskId, {parent_issue_id:T.task.id}).then(function () {
+          T.fire("task_update");
+        }).catch(function (err) {
+          T.fire('td.error.connection', err);
+        });
+      });
+      searchDialog.open();
+    }
+  });
+  </script>
+</dom-module>

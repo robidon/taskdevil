@@ -5,19 +5,20 @@
   <template>
     <style>
     #userSearchDialog {
-    	width: 90%;
+    	min-width: 90%;
+      margin: 24px 16px;
     }
     </style>
     <paper-dialog raised id="userSearchDialog" on-iron-overlay-opened="patchOverlay" role="dialog" class="paper-dialog" with-backdrop always-on-top>
 
-	    <paper-input label="Поиск участника по имени" on-keyup="queueFilter"></paper-input>
+	    <paper-input id="filterInput" label="Поиск участника по имени" on-keyup="searchKeyUp"></paper-input>
 
   		<paper-dialog-scrollable>
-  			<div role="listbox" >
+  			<paper-listbox id="filterResults">
   				<template is="dom-repeat" items="{{userSearchResults}}">
-  					<paper-item item-id='[[item.id]]' item-name='[[item.name]]' on-tap="choose">[[item.name]]</paper-item>
+  					<paper-item on-focused-changed="itemFocusedChanged" item-id='[[item.id]]' item-name='[[item.name]]' on-tap="choose">[[item.name]]</paper-item>
   				</template>
-  			</div>
+  			</paper-listbox>
   		</paper-dialog-scrollable>
 
   	</paper-dialog>
@@ -36,20 +37,27 @@
       ready: function () {
         var T = this;
         T.allUsers = [];
+        T.searchString = '';
         T.userSearchResults = T.allUsers.slice();
-        tasks.users.fetchAll().then(function (users) {
+        tasks.users.fetchAllWithGroups().then(function (users) {
         	T.allUsers = users;
-        	T.userSearchResults = T.allUsers.slice();
+        	T.filter();
+          T.$.userSearchDialog.constrain();
         });
       },
       show: function () {
       	this.$.userSearchDialog.open();
+        var T = this;
+        setTimeout(function () {
+          T.$.filterInput.$.input.focus();
+        },100);
       },
       choose: function (e) {
       	this.$.userSearchDialog.close();
       	this.fire('select', {id:e.target.itemId, name:e.target.itemName} )
       },
-      filter:function (val) {
+      filter:function () {
+        var val = this.searchString;
       	if (!val) {
       		this.userSearchResults = this.allUsers.slice();
       		return;
@@ -61,18 +69,29 @@
       		return (startRegExp.test(u.name) || innerRegExp.test(u.name));
       	});
       },
-      queueFilter: function (e) {
-      	this.filter(e.target.inputElement.value);
+      searchKeyUp: function (e) {
+        var T = this;
+        if (e.code == 'ArrowDown') {
+          if (this.$.filterResults.items.length) {
+            this.$.filterResults.items[0].focus();
+          }
+        } else {
+          this.searchString = e.target.inputElement.value;
+        	this.filter();
+        }
+      },
+      itemFocusedChanged: function (e) {
+        this.$.filterInput.value = e.target.itemName;
       },
       patchOverlay: function (e) {
-		  if (e.target.withBackdrop) {
-		    try {
-		    	e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
-		    } catch (exc) {
+  		  if (e.target.withBackdrop) {
+  		    try {
+  		    	e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
+  		    } catch (exc) {
 
-		    }
-		  }
-		},
+  		    }
+  		  }
+  		},
     });
 	</script>
 
@@ -81,11 +100,28 @@
 <dom-module id="td-user-select">
 
   <template>
-    <paper-input-container>
-      <label>[[label]]</label>
-      <input is="iron-input" value="{{username}}" disabled/>
-      <paper-icon-button suffix icon="icons:search" on-tap="showSearchUserDialog"></paper-icon-button>
-    </paper-input-container>
+    <style>
+      .hidden {
+        display: none
+      }
+      .content {
+        position: relative;
+      }
+      .content * {
+        cursor:pointer;
+      }
+    </style>
+    <div class="content">
+      <paper-ripple></paper-ripple>
+      <paper-input-container on-tap="showSearchUserDialog" always-float-label>
+        <label>[[label]]</label>
+        <input is="iron-input" value="{{username}}" disabled/>
+        <iron-icon suffix id="clearIcon" class$="[[clearIconHiddenClass]]" icon="icons:clear" on-tap="clearSearchResults">
+          <paper-ripple></paper-ripple>
+        </iron-icon>
+        <iron-icon suffix icon="icons:search"></iron-icon>
+      </paper-input-container>
+    </div>
   </template>
 
   <script type="text/javascript">
@@ -103,8 +139,27 @@
       label: {
         type:String,
         notify:false
+      },
+      empty: {
+        type:String,
+        notify:false
       }
     },
+    ready: function () {
+      if (this.value == null) {
+        this.clearIconHiddenClass = '';
+        this.username = this.empty ? this.empty: "";
+      } else {
+        this.clearIconHiddenClass = 'hidden';
+      }
+    },
+    clearSearchResults: function (e) {
+      this.value = null;
+      this.username = this.empty ? this.empty: "";
+      this.clearIconHiddenClass = 'hidden';
+      e.stopPropagation();
+    },
+
     showSearchUserDialog:function (event) {
       var searchDialog = new TDUserChooser();
       var T = this;
@@ -114,6 +169,7 @@
         });
         T.value = e.detail.id;
         T.username = e.detail.name;
+        T.clearIconHiddenClass = '';
         searchDialog.remove();
       });
       document.body.appendChild(searchDialog);

@@ -6,6 +6,10 @@
 <dom-module id="td-menu">
   <template>
     <style include="menu-styles">
+      :host{
+        display: block;
+        height: 100%;
+      }
       .filters {
         margin: 0 0px;
         background:#f0f0f0;
@@ -28,32 +32,51 @@
       }
     </style>
 
-      <div>
+    <div class="layout vertical height100">
 
-        <paper-tabs selected="{{selectedMenuTab}}" fallback-selection="0">
-          <paper-tab><paper-icon-button icon="list"></paper-icon-button></paper-tab>
-          <paper-tab><paper-icon-button icon="notification:folder-special"></paper-icon-button></paper-tab>
-          <paper-tab><paper-icon-button icon="search"></paper-icon-button></paper-tab>
-          <paper-tab><paper-icon-button icon="settings"></paper-icon-button></paper-tab>
-        </paper-tabs>
-        <iron-pages selected="{{selectedMenuTab}}">
+      <paper-tabs selected="{{selectedMenuTab}}" fallback-selection="0">
+        <paper-tab><paper-icon-button icon="list"></paper-icon-button></paper-tab>
+        <paper-tab><paper-icon-button icon="notification:folder-special"></paper-icon-button></paper-tab>
+        <paper-tab><paper-icon-button icon="search"></paper-icon-button></paper-tab>
+        <paper-tab><paper-icon-button icon="settings"></paper-icon-button></paper-tab>
+        <paper-tab on-tap="actionAddTask"><paper-icon-button icon="add"></paper-icon-button></paper-tab>
+      </paper-tabs>
+      <iron-pages selected="{{selectedMenuTab}}" class="flex">
 
-          <td-menu-user></td-menu-user>
-          <td-menu-queries></td-menu-queries>
-          <td-menu-search></td-menu-search>
+        <td-menu-user></td-menu-user>
+        <td-menu-queries></td-menu-queries>
+        <td-menu-search></td-menu-search>
 
-          <div>
-            <a name="settings" href="/settings">Настройки</a>
-          </div>
+        <div>
+          <a name="settings" href="/settings">Настройки</a>
+        </div>
 
-        </iron-pages>
+      </iron-pages>
 
-      </div>
+    </div>
 
   </template>
   <script type="text/javascript">
   Polymer({
-    is: 'td-menu'
+    is: 'td-menu',
+    actionAddTask: function () {
+      var initdata = {
+        author:tasks.config.user,
+      }
+      var shownFields = ['subject','description','tracker_id','priority_id','project_id','assigned_to_id'];
+      var editDialog = new TDTaskDialogEdit('Новая задача', initdata, shownFields);
+      editDialog.addEventListener('dismiss', function () {
+        editDialog.remove();
+      });
+      editDialog.addEventListener('save', function (e) {
+        tasks.addTask(e.detail.data).then(function (task) {
+          navigateTo('/task-info/'+task.id);
+        });
+      });
+      document.body.appendChild(editDialog);
+      editDialog.open();
+      return false;
+    }
   })
   </script>
 </dom-module>

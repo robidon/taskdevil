@@ -1,0 +1,175 @@
+<dom-module id="td-task-page-attachments">
+  <template>
+    <style type="text/css" include="td-task-styles">
+
+      .itemIcon {
+         margin-right:6px;
+         color:#777;
+         @apply(--layout-vertical)
+         @apply(--layout-top-left)
+      }
+      .card-content {
+        padding:0px!important;
+      }
+      .actions {
+        padding:16px;
+        border-bottom:1px solid #c0c0c0;
+      }
+      .taskContentBlock {position: relative;}
+      #dropZone {
+        position:absolute;
+        top:0; left:0; bottom:0; right:0;
+        z-index:1;
+        background:rgba(255,255,255,0.8);
+        padding:18px;
+      }
+      .dropZoneTitle {
+        background:#fff;
+        padding:16px;
+        color:#666;
+        text-align: center;
+        font-size:18px;
+      }
+      paper-item {
+        --paper-item-selected-weight: normal;
+      }      
+    </style>
+
+    <div class="taskContentBlock layout vertical">
+      <div id="dropZone" hidden$="[[hideDropZone]]">
+        <template is="dom-if" if="[[!uploads.length]]">
+          <div class="dropZoneTitle">Переместите файл сюда, чтобы прикрепить его к задаче</div>
+        </template>
+        <template is="dom-if" if="[[uploads.length]]">
+          <div class="dropZoneTitle">
+            Идёт загрузка
+            <template is="dom-repeat" items="[[uploads]]">
+              <div class="label">[[item.name]]</div>
+              <paper-progress style="width:100%" min="0" max="[[item.size]]" value="[[item.progress]]"></paper-progress>
+            </template>
+          </div>
+        </template>
+        <input type="file" multiple id="files" name="files[]" style="display:none"/>
+      </div>
+      <paper-card class="taskContentBlockItem">
+        <div class="card-content">
+          <div class="actions layout center horizontal">
+            <div class="subpageTitle flex">Файлы</div>
+            <paper-icon-button icon="icons::add" on-tap="showAttachmentDialog"></paper-icon-button>
+          </div>
+          <template is="dom-if" if="[[task.attachments.length]]">
+            <paper-listbox>
+              <template is="dom-repeat" items="[[task.attachments]]">
+                <paper-item>
+                  <div class="flex">
+                    <div class="label">[[item.author.name]]<td-time style="float:right" time=[[item.created_on]]></td-time></div>
+                    <a href="[[item.content_url]]" target="_blank">[[item.filename]]</a> ([[item.filesize]] байт)
+                  </div>
+                  <div><paper-icon-button icon="icons:delete" attachment-id='[[item.id]]' on-tap="deleteAttachment"></paper-icon-button></div>
+                </paper-item>
+              </template>
+            </paper-listbox>
+          </template>
+          <template is="dom-if" if="[[!task.attachments.length]]">
+            <div class="emptyMessage">Список пуст</div>
+          </template>
+        </div>
+      </paper-card>
+    </div>
+  </template>
+  <script type="text/javascript">
+  Polymer({
+    is:'td-task-page-attachments',
+    properties:{
+      uploads:{
+        type:Array
+      }
+    },
+    ready:function () {
+      this.hideDropZone = true;
+      var T = this;
+      var dragTimer = 0;
+      T.uploads = [];
+      $(this).on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      })
+      .on('dragover dragenter', function(e){
+        var isFile = isDragSourceExternalFile(e.originalEvent.dataTransfer);
+        if (isFile) {
+          window.clearTimeout(dragTimer);
+          T.hideDropZone = false;
+        }
+      })
+      .on('dragleave dragend', function (e) {
+        window.clearTimeout(dragTimer);
+        dragTimer = window.setTimeout(function() {
+          T.hideDropZone = true;
+        }, 100);
+      })
+      .on('drop', function (e) {
+        var files = e.originalEvent.dataTransfer.files;
+        T._uploadFiles(files);
+      });
+
+      T.$.files.addEventListener('change', function (e) {
+        var files = e.target.files;
+        T.hideDropZone = false;
+        T._uploadFiles(files);
+      }, false);
+    },
+    _uploadFiles:function(files) {
+      var filesCount = files.length;
+      var uploadedFiles = 0;
+      var i, file;
+      var newAttachments = [];
+      var T = this;
+      for (i=0;i<files.length;i++) {
+        file = files.item(i);
+        (function (file, index) {
+          file.progress = 0;
+          T.push('uploads', file);
+          tasks.attachments.upload(file, function (e) {
+            file.progress = e.loaded;
+            T.notifyPath('uploads.'+index+'.progress',e.loaded);
+          }).then(function (attachmentInfo) {
+            uploadedFiles ++;
+            newAttachments.push(attachmentInfo);
+            file.progress = file.size;
+            T.notifyPath('uploads.'+index+'.progress',file.size);
+            if (uploadedFiles == filesCount) {
+              tasks.attachments.add(T.task.id, newAttachments). then(function () {
+                T.uploads = [];
+                T.hideDropZone = true;
+                T.fire('task_update');
+              });
+            }
+          });
+        })(file, i);
+      }
+    },
+    showAttachmentDialog: function () {
+      var T = this;
+      $(T.$.files).click();
+      /*var dialog = new TDTaskDialogAttachment(this.task);
+      dialog.addEventListener('save', function (e) {
+        var uploads = e.detail;
+        tasks.attachments.add(T.task.id, uploads). then(function () {
+          T.fire('task_update');
+        });
+      });
+      dialog.open();*/
+    },
+    deleteAttachment: function (e) {
+      var attachmentId = e.target.attachmentId;
+      console.log(attachmentId);
+      var T = this;
+      tasks.attachments.delete(attachmentId).then(function() {
+        T.fire('task_update');
+      }, function (errText) {
+        T.fire('td.error.connection', errText);
+      });
+    }
+  })
+  </script>
+</dom-module>

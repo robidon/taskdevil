@@ -1,0 +1,63 @@
+<link rel="import" href="page-details.html">
+<link rel="import" href="page-history.html">
+<link rel="import" href="page-subtasks.html">
+<link rel="import" href="page-watchers.html">
+<link rel="import" href="page-attachments.html">
+<link rel="import" href="dialog-comment.html">
+<link rel="import" href="dialog-edit.html">
+<link rel="import" href="../common/dialog/searchtask.html">
+
+<dom-module id="td-task-layout">
+  <template>
+    <style type="text/css" include="td-task-styles">
+      .taskContent {
+        min-width: 320px;
+        overflow-x:hidden;
+      }
+      .taskContent.hidden {
+        display: none;
+      }
+      @media screen and (min-width: 1000px) {
+        .taskContent.hidden.first {
+          display: block
+        }
+      }
+    </style>
+
+    <div class="layout horizontal">
+      <div name="details" class$="[[getClassNames(selected, 'details')]] first">
+        <td-task-page-details task={{task}}></td-task-page-details>
+      </div>
+
+      <div name="attachments" class$="[[getClassNames(selected, 'attachments')]]">
+        <td-task-page-attachments task={{task}}></td-task-page-attachments>
+      </div>
+
+      <div name="subtasks" class$="[[getClassNames(selected, 'subtasks')]]">
+        <td-task-page-subtasks task={{task}}></td-task-page-subtasks>
+      </div>
+
+      <div name="history" class$="[[getClassNames(selected, 'history')]]">
+        <td-task-page-history task={{task}}></td-task-page-history>
+      </div>
+
+      <div name="watchers" class$="[[getClassNames(selected, 'watchers')]]">
+        <td-task-page-watchers task={{task}}></td-task-page-watchers>
+      </div>
+    </div>
+
+  </template>
+  <script type="text/javascript">
+    Polymer ({
+      is:'td-task-layout',
+      ready:function () {
+
+      },
+      getClassNames: function (selected, d) {
+        var str = "taskContent flex";
+        if(d!=selected) str += " hidden";
+        return str;
+      }
+    })
+  </script>
+</dom-module>

@@ -1,5 +1,9 @@
+<link rel="import" href="task/styles.html">
+<link rel="import" href="task/dialog-comment.html">
+<link rel="import" href="task/layout.html">
+<link rel="import" href="task/dialog-edit.html">
+
 <link rel="import" href="components/html-echo.html">
-<link rel="import" href="components/taskedit.html">
 <link rel="import" href="shared-styles.html">
 
 <script type="text/javascript" src="../bower_components/moment/moment.js"></script>
@@ -11,150 +15,108 @@
 <dom-module id="page-task-info">
 
   <template>
-    <style include="shared-styles iron-flex iron-flex-alignment">
-      .pageContent {
-        height: 100%;
-        --paper-tabs-selection-bar-color:var(--paper-indigo-500);
-      }
-      .topBarTabs {
-        --paper-tabs-selection-bar-color:var(--paper-indigo-500);
-      }
-      .taskContent {
-        overflow-y:auto;
-        padding:10px;
-      }
-      .bottomBar {
-        background-color:var(--paper-indigo-500);
+
+    <style include="td-task-styles">
+      .topBarTabs{
         color:#fff;
       }
-      .journalsTabBadge {
-        --paper-badge-background:var(--paper-indigo-500);
-        --paper-badge-opacity:0.5;
+      a.tablink {
+        color: #fff;
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
       }
-      .journalTime {
-        float:right;
+      .tabShifter {
+        display: none
       }
+      .topBarTabs {
+        @apply(--layout-flex);
+        @apply(--layout-self-end);
+        min-width:300px;
+        height: 64px;
+      }
+      @media screen and (min-width: 1000px) {
+        .tabShifter {
+          display: block
+        }
+        .detailsTab {
+          display: none
+        }
+        .toolbarMain {
+          height: calc(var(--calculated-paper-toolbar-height) * 2);
+        }
+      }      
     </style>
 
     <app-route route="[[route]]" pattern="/task-info/:id" data="{{routeData}}"></app-route>
+    <app-route route="[[route]]" pattern="/task-info/:id/:page" data="{{pageRouteData}}"></app-route>
+    <iron-media-query query="(min-width: 1000px)" query-matches="{{screenIsLarge}}"></iron-media-query>
 
     <td-preloader display="[[showPreloader]]"></td-preloader>
 
+    <app-header-layout has-scrolling-region fullbleed>
+
+      <app-header condenses reveals effects="waterfall">
+
+        <paper-toolbar id="toolbarMain" class="toolbarMain">
+          <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
+          <span main-title class="title flex">[[task.tracker.name]]: [[task.id]]</span>
+          <paper-tabs id="topBarTabs" class="topBarTabs" selected="{{page}}" noink attr-for-selected="page" fallback-selection="details">
+            <paper-tab page="details" class="detailsTab" link><a href="/task-info/[[id]]/details" class="tablink"><iron-icon icon="icons:info-outline"></iron-icon></a></paper-tab>
+            <paper-tab page="attachments" link>
+              <a href="/task-info/[[id]]/attachments" class="tablink"><span id="attachmentsTabTitle"><iron-icon icon="icons:attachment"></iron-icon></span></a>
+              <template is="dom-if" if="[[task.attachments.length]]">
+                <paper-badge for="attachmentsTabTitle" class="taskTabBadge" label="[[task.attachments.length]]"></paper-badge>
+              </template>
+            </paper-tab>
+            <paper-tab page="subtasks" link>
+              <a href="/task-info/[[id]]/subtasks" class="tablink"><span id="childrenTabTitle">Подзадачи</span></a>
+              <template is="dom-if" if="[[task.children.length]]">
+                <paper-badge for="childrenTabTitle" class="taskTabBadge" label="[[task.children.length]]"></paper-badge>
+              </template>
+            </paper-tab>
+            <paper-tab page="history" link>
+              <a href="/task-info/[[id]]/history" class="tablink"><span id="journalsTabTitle">История</span></a>
+              <template is="dom-if" if="[[task.journals.length]]">
+                <paper-badge for="journalsTabTitle" class="taskTabBadge" label="[[task.journals.length]]"></paper-badge>
+              </template>
+            </paper-tab>
+            <paper-tab page="watchers" link>
+              <a href="/task-info/[[id]]/watchers" class="tablink"><span id="watchersTabTitle"><iron-icon icon="icons:visibility"></iron-icon></span></a>
+              <template is="dom-if" if="[[task.watchers.length]]">
+                <paper-badge for="watchersTabTitle" class="taskTabBadge" label="[[task.watchers.length]]"></paper-badge>
+              </template>
+            </paper-tab>
+          </paper-tabs>
+
+          <paper-menu-button
+              horizontal-align="right"
+              vertical-align="top"
+              horizontal-offset="10"
+              vertical-offset="20">
+            <paper-icon-button icon="icons:more-vert" class="dropdown-trigger"></paper-icon-button>
+            <paper-menu class="dropdown-content">
+              <template is="dom-repeat" items=[[moreMenuItems]]>
+                <paper-item item="[[item]]" on-tap=_moreMenuAction>[[item.name]]</paper-item>
+              </template>
+            </paper-menu>
+          </paper-menu-button>
+
+        </paper-toolbar>
+
+      </app-header>
+
+      <div class="taskContent">
+        <td-task-layout selected="[[page]]" task="[[task]]" attr-for-selected="name" ></td-task-layout>
+      </div>
+
+
+    </app-header-layout>
+
+
     <div class="vertical layout pageContent">
 
-      <div>
-        <paper-tabs class="topBarTabs" selected="{{selectedTab}}">
-          <paper-tab>Описание</paper-tab>
-          <paper-tab>
-            <span id="journalsTabTitle">История</span>
-            <template is="dom-if" if="[[task.journals.length]]">
-              <paper-badge for="journalsTabTitle" class="journalsTabBadge" label="[[task.journals.length]]"></paper-badge>
-            </template>
-          </paper-tab>
-        </paper-tabs>
-      </div>
-
-      <div class="flex taskContent">
-        <iron-pages selected="{{selectedTab}}">
-
-          <div>
-            <template is="dom-if" if="[[parenttask]]">
-              <a href="/task-info/[[parenttask.id]]">[[parenttask.subject]]</a>
-            </template>
-            <h1>[[task.subject]]</h1>
-            <html-echo html=[[formatText(task.description)]]></html-echo>
-            <p>Автор: <a href="">[[task.author.name]]</a></p>
-            <p>Назначена: <a href="">[[task.assigned_to.name]]</a></p>
-            <p>Статус: [[task.status.name]]</p>
-            <p>Дата создания: [[formatTime(task.created_on)]]</p>
-            <template is="d
-            om-if" if="task.children.length">
-              <p>Подзадачи:</p>
-              <ul>
-                <template is="dom-repeat" items="[[task.children]]">
-                  <li><a href="/task-info/[[item.id]]">[[item.subject]]</a></li>
-                </template>
-              </ul>
-            </template>
-          </div>
-
-          <div>
-            <template is="dom-repeat" items="[[task.journals]]" as="journal">
-              <div>
-                <span class="journalAuthor">[[journal.user.name]]</span>
-                <span class="journalTime">[[formatTime(journal.created_on)]]</span>
-                <span class="journalNote">[[journal.note]]</span>
-                <div class="journalChanges">
-                  <template is="dom-repeat" items="[[journal.details]]" as="detail">
-                    <div class="journalChangeItem">
-                      "[[detail.name]]": "[[detail.old_value]]" &rarr; "[[detail.new_value]]"
-                    </div>
-                  </template>
-                </div>
-              </div>
-            </template>
-          </div>
-
-        </iron-pages>
-      </div>
-
-      <div class="bottomBar">
-        <paper-tabs align-bottom scrollable fit-container no-bar>
-          <template is='dom-if' if=[[availableActions.assignToMe]]>
-            <paper-tab action='assignToMe' on-tap="action">
-              <iron-icon class="buttonIcon" icon="icons:assignment-return"></iron-icon>
-              Забрать себе
-            </paper-tab>
-          </template>
-          <template is='dom-if' if=[[availableActions.assign]]>
-            <paper-tab action='assign' on-tap="action">
-              <iron-icon class="buttonIcon" icon="icons:assignment-ind"></iron-icon>
-              Назначить
-            </paper-tab>
-          </template>
-          <template is='dom-if' if=[[availableActions.start]]>
-            <paper-tab action='start' on-tap="action">
-              <iron-icon class="buttonIcon" icon="av:play-arrow"></iron-icon>
-              Приступаю
-            </paper-tab>
-          </template>
-          <template is='dom-if' if=[[availableActions.pause]]>
-            <paper-tab action='pause' on-tap="action">
-              <iron-icon class="buttonIcon" icon="av:pause"></iron-icon>
-              Откладываю
-            </paper-tab>
-          </template>
-          <template is='dom-if' if=[[availableActions.assignToQA]]>
-            <paper-tab action='assignToQA' on-tap="action">
-              <iron-icon class="buttonIcon" icon="icons:bug-report"></iron-icon>
-              Отправить в QA
-            </paper-tab>
-          </template>
-          <template is='dom-if' if=[[availableActions.close]]>
-            <paper-tab action='close' on-tap="action">
-              <iron-icon class="buttonIcon" icon="icons:done-all"></iron-icon>
-              Закрыть
-            </paper-tab>
-          </template>
-          <template is='dom-if' if=[[availableActions.watch]]>
-            <paper-tab action='watch' on-tap="action">
-              <iron-icon class="buttonIcon" icon="icons:visibility"></iron-icon>
-              Наблюдать
-            </paper-tab>
-          </template>
-          <template is='dom-if' if=[[availableActions.unwatch]]>
-            <paper-tab action='unwatch' on-tap="action">
-              <iron-icon class="buttonIcon" icon="icons:visibility-off"></iron-icon>
-              Не наблюдать
-            </paper-tab>
-          </template>
-
-        </paper-tabs>
-      </div>
 
     </div>
-    <!--<paper-toolbar class="taskToolbar">
-    </paper-toolbar>-->
   </template>
 
   <script>
@@ -175,15 +137,36 @@
         moremenu: {
           type: Array,
           notify: true
+        },
+        screenIsLarge: {
+          type:Boolean,
+          observer:"screenIsLargeChanged"
         }
       },
       observers: [
         'routeIdChanged(routeData.id)',
+        'routePageChanged(pageRouteData.page)',
       ],
+      screenIsLargeChanged: function (screenIsLarge) {
+        if (!screenIsLarge) {
+          this.$.toolbarMain.classList.add('medium-tall');
+          this.$.topBarTabs.classList.add('middle');
+        } else {
+          this.$.toolbarMain.classList.remove('medium-tall');
+          this.$.topBarTabs.classList.remove('middle');
+        }
+      },
       ready: function () {
+        var T = this;
+        this.addEventListener('task_update', function () {
+          T.idChanged();
+        });
       },
       routeIdChanged: function (id) {
         this.id = id;
+      },
+      routePageChanged: function (page) {
+        this.page = page;
       },
       updateView:function () {
         this.idChanged();
@@ -192,54 +175,35 @@
         var id = this.id
         var T = this;
         T.task = undefined;
-        T.parenttask = undefined;
         T.showPreloader = true;
         T.selectedTab = 0;
         T.moremenu = [];
         tasks.fetchById(id).then(function (task) {
           console.log(task);
           T.task = task;
-          if (task.parent && task.parent.id) {
-            tasks.fetchById(task.parent.id).then(function (parenttask) {
-              T.parenttask = parenttask;
-            });
-          }
           T.title = task.tracker.name + ": " + task.id;
-          T.availableActions = {
-            assignToQA: task.assigned_to.id == tasks.config.userId,
-            assign: task.assigned_to.id == tasks.config.userId
-              || task.author.id == tasks.config.userId,
-            assignToMe: task.assigned_to.id != tasks.config.userId,
-            start: task.assigned_to.id == tasks.config.userId
-              && ( task.status.id == tasks.STATUS.NEW || task.status.id == tasks.STATUS.ASSIGNED), // назначено или новый
-            pause: task.assigned_to.id == tasks.config.userId
-              && ( task.status.id == tasks.STATUS.INPROGRESS ), // в процессе
-            close: task.author.id == tasks.config.userId,
-            watch: task.author.id != tasks.config.userId
-              && task.assigned_to.id != tasks.config.userId
-              && -1 == _.findIndex(task.watchers, function (o) {
-                return o.id == tasks.config.userId
-              }),
-            unwatch: task.author.id != tasks.config.userId
-              && task.assigned_to.id != tasks.config.userId
-              && -1 != _.findIndex(task.watchers, function (o) {
-                return o.id == tasks.config.userId
-              }),
+          if (task.children && task.children.length) {
+            task.children.forEach(function (el) {
+              if (el.tracker) {
+                el.trackerIcon = tasks.trackers[el.tracker.id] ? tasks.trackers[el.tracker.id].icon : false;
+              }
+            });
           }
           T.moremenu = [
             {
               name:"Изменить",
               action:function () {
-                var editDialog = new TDTaskEditDialog();
-                editDialog.data=task;
-                editDialog.addEventListener('save', function (e) {
-                  var changes = event.detail;
+                var editDialog = new TDTaskDialogEdit('Обновление задачи', task);
+                editDialog.addEventListener('dismiss', function (data) {
+                  editDialog.remove();
+                });
+                editDialog.addEventListener('save', function (event) {
+                  var changes = event.detail.changes;
                   T.showPreloader = true;
                   tasks.updateTask(T.id, changes).then(function (res) {
                     T.updateView();
                     T.showPreloader = false;
                   });
-                  editDialog.remove();
                 });
                 document.body.appendChild(editDialog);
                 editDialog.open();
@@ -248,70 +212,7 @@
           ];
           T.showPreloader = false;
         });
-      },
-      action: function (event) {
-        var T = this;
-        var action = event.target.getAttribute('action');
-        switch (action) {
-          case 'assignToQA':
-            tasks.updateTask(this.id, {status_id: tasks.STATUS.QA}).then(function (res) {
-              T.updateView();
-            });
-            break;
-          case 'assignToMe':
-            tasks.updateTask(this.id, {status_id: tasks.STATUS.NEW, assigned_to_id: tasks.config.userId}).then(function (res) {
-              T.updateView();
-            });
-            break;
-          case 'assign':
-            var searchDialog = new TDUserChooser();
-            searchDialog.addEventListener('select', function (e) {
-              tasks.updateTask(T.id, {status_id: tasks.STATUS.ASSIGNED, assigned_to_id: e.detail.id}).then(function (res) {
-                T.updateView();
-              });
-              searchDialog.remove();
-            });
-            document.body.appendChild(searchDialog);
-            searchDialog.show();
-            break;
-          case 'start':
-            tasks.updateTask(this.id, {status_id: tasks.STATUS.INPROGRESS}).then(function (res) {
-              T.updateView();
-            });
-            break;
-          case 'stop':
-            tasks.updateTask(this.id, {status_id: tasks.STATUS.POSTPONED}).then(function (res) {
-              T.updateView();
-            });
-            break;
-          case 'watch':
-            break;
-          case 'unwatch':
-            break;
-          case 'close':
-            tasks.updateTask(this.id, {status_id: tasks.STATUS.CLOSED}).then(function (res) {
-              T.updateView();
-            });
-            break;
-          default:
-            console.log('unknown action')
-        }
-      },
-      formatText: function(val) {
-        if (!val) return '';
-        val = val.replace(
-          /((http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?)/g,
-          '"$1":$1'
-        );
-        val = textile.parse(val);
-        //val = val.replace("\n",'<br/>');*/
-        return val;
-      },
-      formatTime: function (val) {
-        var d = moment(val);
-        moment.locale("ru");
-        return d.format("ll");
-      }
+      }      
     });
   </script>
 </dom-module>

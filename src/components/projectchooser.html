@@ -10,14 +10,14 @@
     </style>
     <paper-dialog raised id="projectSearchDialog" on-iron-overlay-opened="patchOverlay" role="dialog" class="paper-dialog" with-backdrop always-on-top>
 
-      <paper-input label="Поиск проекта по названию" on-keyup="queueFilter"></paper-input>
+      <paper-input id="filterInput" label="Поиск проекта по названию" on-keyup="searchKeyUp"></paper-input>
 
       <paper-dialog-scrollable>
-        <div role="listbox">
+        <paper-listbox id="filterResults">
           <template is="dom-repeat" items="{{projectSearchResults}}">
-            <paper-item item-id='[[item.id]]' item-name='[[item.name]]' on-tap="choose">[[item.name]]</paper-item>
+            <paper-item on-focused-changed="itemFocusedChanged" item-id='[[item.id]]' item-name='[[item.name]]' on-tap="choose">[[item.name]]</paper-item>
           </template>
-        </div>
+        </paper-listbox>
       </paper-dialog-scrollable>
 
   </paper-dialog>
@@ -35,6 +35,7 @@
       },
       ready: function () {
         var T = this;
+        T.searchString = '';
         T.allProjects = [];
         T.projectSearchResults = T.allProjects.slice();
         tasks.projects.fetchAll().then(function (projects) {
@@ -43,13 +44,21 @@
         });
       },
       show: function () {
-        this.$.projectSearchDialog.open();
+        var T = this;
+        T.$.projectSearchDialog.open();
+        setTimeout(function () {
+          T.$.filterInput.$.input.focus();
+        },100);
       },
       choose: function (e) {
         this.$.projectSearchDialog.close();
         this.fire('select', {id:e.target.itemId, name:e.target.itemName} )
       },
-      filter:function (val) {
+      itemFocusedChanged: function (e) {
+        this.$.filterInput.value = e.target.itemName;
+      },
+      filter:function () {
+        var val = this.searchString;
         if (!val) {
           this.projectSearchResults = this.allProjects.slice();
           return;
@@ -61,18 +70,26 @@
           return (startRegExp.test(p.name) || innerRegExp.test(p.name));
         });
       },
-      queueFilter: function (e) {
-        this.filter(e.target.inputElement.value);
+      searchKeyUp:function (e) {
+        var T = this;
+        if (e.code == 'ArrowDown') {
+          if (this.$.filterResults.items.length) {
+            this.$.filterResults.items[0].focus();
+          }
+        } else {
+          this.searchString = e.target.inputElement.value;
+          this.filter();
+        }
       },
       patchOverlay: function (e) {
-      if (e.target.withBackdrop) {
-        try {
-          e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
-        } catch (exc) {
+        if (e.target.withBackdrop) {
+          try {
+            e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
+          } catch (exc) {
 
+          }
         }
-      }
-    },
+      },
     });
   </script>
 
@@ -81,11 +98,26 @@
 <dom-module id="td-project-select">
 
   <template>
-    <paper-input-container>
-      <label>[[label]]</label>
-      <input is="iron-input" value="{{projectname}}" disabled/>
-      <paper-icon-button suffix icon="icons:search" on-tap="showSearchProjectDialog"></paper-icon-button>
-    </paper-input-container>
+    <style>
+      .hidden {
+        display: none;
+      }
+      .content {
+        position: relative;
+      }
+      .content * {
+        cursor:pointer;
+      }
+    </style>
+    <div class="content">
+      <paper-ripple></paper-ripple>
+      <paper-input-container always-float-label on-tap="showSearchProjectDialog">
+        <label>[[label]]</label>
+        <input is="iron-input" value="{{projectname}}" disabled/>
+        <iron-icon suffix id="clearIcon" class$="[[clearIconHiddenClass]]" icon="icons:clear" on-tap="clearSearchResults"></iron-icon>
+        <iron-icon suffix icon="icons:search"></iron-icon>
+      </paper-input-container>
+    </div>
   </template>
 
   <script type="text/javascript">
@@ -103,7 +135,21 @@
       label: {
         type:String,
         notify:false
+      },
+      empty: {
+        type:String,
+        notify:false
       }
+    },
+    ready:function () {
+      this.projectname = this.empty ? this.empty: "";
+      this.clearIconHiddenClass = 'hidden';
+    },
+    clearSearchResults: function (e) {
+      this.value = null;
+      this.projectname = this.empty ? this.empty: "";
+      this.clearIconHiddenClass = 'hidden';
+      e.stopPropagation();
     },
     showSearchProjectDialog:function (event) {
       var searchDialog = new TDProjectChooser();
@@ -112,9 +158,14 @@
         var input = _.find(event.target.parentNode.childNodes, function (el) {
           return el.tagName=="INPUT";
         });
+        var changed = (T.value != e.detail.id)
         T.value = e.detail.id;
         T.projectname = e.detail.name;
+        if (T.empty) {
+          T.clearIconHiddenClass = '';
+        }
         searchDialog.remove();
+        if (changed) T.fire('change');
       });
       document.body.appendChild(searchDialog);
       searchDialog.show();

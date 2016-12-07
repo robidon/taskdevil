@@ -1,0 +1,61 @@
+<dom-module is="td-task-page-history">
+  <template>
+    <style type="text/css" include="td-task-styles">
+    </style>
+
+    <div class="taskContentBlock">
+      <div class="taskContentBlockItem layout vertical">
+      <paper-card>
+        <div class="card-content layout center horizontal">
+          <div class="subpageTitle flex">История изменений</div>
+          <div><paper-icon-button on-tap="showCommentDialog" icon="communication:comment"></paper-icon-button></div>
+        </div>
+      </paper-card>
+      <template is="dom-repeat" items="[[task.journals]]" as="journal" sort="sort">
+        <paper-card class="journalItem">
+          <div class="card-content">
+            <div class="label">
+              <span class="journalAuthor">[[journal.user.name]]</span>
+              <span class="journalTime"><td-time time=[[journal.created_on]]></td-time></span>
+            </div>
+            <span class="journalNote">[[journal.notes]]</span>
+          </div>
+          <template is="dom-if" if="[[journal.details.length]]">
+            <div class="journalChanges">
+              <template is="dom-repeat" items="[[journal.details]]" as="detail">
+                <span class="journalChangeItem">
+                  "[[detail.name]]": "[[detail.old_value]]" &rarr; "[[detail.new_value]]".
+                </span>
+              </template>
+            </div>
+          </template>
+        </paper-card>
+      </template>
+      </div>
+    </div>
+
+
+  </template>
+  <script type="text/javascript">
+  Polymer ({
+    is:'td-task-page-history',
+    sort:function (a, b) {
+      if (a.id==b.id) return 0;
+      return (a.id>b.id)? -1:1;
+    },
+    showCommentDialog: function () {
+      var commentDialog = new TDTaskDialogComment();
+      var T = this;
+      commentDialog.addEventListener('comment', function (e) {
+        var text = e.detail;
+        if (text) {
+          tasks.updateTask(T.task.id, {notes: text}).then(function (res) {
+            T.fire('task_update');
+          });
+        }
+      });
+      commentDialog.open();
+    }
+  });
+  </script>
+</dom-module>

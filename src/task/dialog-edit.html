@@ -1,0 +1,156 @@
+<dom-module id="td-task-dialog-edit">
+  <template>
+    <style>
+    #dialog {
+      min-width: 90%;
+      margin: 24px 16px;
+    }
+    </style>
+    <paper-dialog id="dialog" on-iron-overlay-opened="patchOverlay" on-iron-overlay-closed="dismissDialog" modal auto-fit-on-attach>
+      <h2>{{title}}</h2>
+      <paper-dialog-scrollable>
+        
+        <template is="dom-if" if="[[editFields.subject]]">
+          <paper-textarea id="subject" label="Тема" value="{{formdata.subject}}"></paper-textarea>
+          <paper-textarea id="description" label="Описание" value="{{formdata.description}}"></paper-textarea>
+        </template>
+
+        <template is="dom-if" if="[[editFields.parent_issue_id]]">
+          <paper-input id="parent_issue_id" label="Родительская задача" value="{{formdata.parent_issue_id}}"></paper-input>
+        </template>
+        
+        <template is="dom-if" if="[[editFields.tracker_id]]">
+          <paper-dropdown-menu label="Трекер">
+            <paper-listbox class="dropdown-content" selected="{{formdata.tracker_id}}" attr-for-selected='itemid'>
+              <template is="dom-repeat" items="[[tasksTrackers]]">
+                <paper-item itemid='[[item.id]]'>[[item.name]]</paper-item>
+              </template>
+            </paper-listbox>
+          </paper-dropdown-menu>
+        </template>
+
+        <template is="dom-if" if="[[editFields.status_id]]">
+          <paper-dropdown-menu label="Статус">
+            <paper-listbox class="dropdown-content" id="status_id" selected="{{formdata.status_id}}" attr-for-selected='itemid'>
+              <template is="dom-repeat" items="[[tasksStatuses]]">
+                <paper-item itemid='[[item.id]]'>[[item.name]]</paper-item>
+              </template>
+            </paper-listbox>
+          </paper-dropdown-menu>
+        </template>
+
+        <template is="dom-if" if="[[editFields.priority_id]]">
+          <paper-dropdown-menu label="Приоритет">
+            <paper-listbox class="dropdown-content" id="priority_id" selected="{{formdata.priority_id}}" attr-for-selected='itemid'>
+              <template is="dom-repeat" items="[[tasksPriorities]]">
+                <paper-item itemid='[[item.id]]'>[[item.name]]</paper-item>
+              </template>
+            </paper-listbox>
+          </paper-dropdown-menu>
+        </template>
+
+        <template is="dom-if" if="[[editFields.project_id]]">
+          <td-project-select id="project_id" label="Проект" value="{{formdata.project_id}}" projectname="[[data.project.name]]"></td-project-select>
+        </template>
+        <template is="dom-if" if="[[editFields.author_id]]">
+          <td-user-select id="author_id" label="Автор" value="{{formdata.author_id}}" username="[[data.author.name]]"></td-user-select>
+        </template>
+        <template is="dom-if" if="[[editFields.assigned_to_id]]">
+          <td-user-select id="assigned_to_id" label="Назначена" value="{{formdata.assigned_to_id}}" username="[[data.assigned_to.name]]"></td-user-select>
+        </template>
+  
+
+        <template is="dom-if" if="[[editFields.done_ratio]]">
+          <label>Прогресс</label>
+          <paper-slider class="red" value="{{formdata.done_ratio}}" max="100"></paper-slider>
+        </template>
+
+      </paper-dialog-scrollable>
+      <div class="buttons">
+        <paper-button dialog-dismiss><spring:message code="no" />Отмена</paper-button>
+        <paper-button dialog-confirm autofocus><spring:message code="yes" />Сохранить</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script type="text/javascript">
+    var TDTaskDialogEdit = Polymer({
+      is:'td-task-dialog-edit',
+      properties:{
+        title: {
+          type:String,
+        },
+        data:{
+          type:Object,
+          notify:true,
+          observer: "dataChanged"
+        }
+      },
+      factoryImpl: function(title, data, shownFields, returnChanges) {
+        this.title = title;
+        this.shownFields = shownFields;
+        this.data = data;
+      },
+      ready: function () {
+        this.title = 'Изменить'; // значение по умолчанию
+        this.tasksStatuses = _.values(tasks.statuses);
+        this.tasksTrackers = _.values(tasks.trackers);
+        this.tasksPriorities = _.values(tasks.priorities);
+      },
+      _updateEditFields: function () {
+        var ef = {}
+        for (var field in this.formdata) {
+          ef[field] = (!this.shownFields) || (this.shownFields.indexOf(field) != -1)
+        }
+        this.editFields = ef;
+      },
+      dataChanged: function () {
+        var T = this;
+        this.formdata = {
+          subject:T.data.subject ? T.data.subject : '',
+          description:T.data.description ? T.data.description : '',
+          parent_issue_id:T.data.parent ? T.data.parent.id : 0,
+          project_id:T.data.project ? T.data.project.id : 0,
+          status_id:T.data.status ? T.data.status.id : 0,
+          tracker_id:T.data.tracker ? T.data.tracker.id : 0,
+          priority_id:T.data.priority ? T.data.priority.id : 0,
+          author_id:T.data.author ? T.data.author.id : 0,
+          assigned_to_id:T.data.assigned_to ? T.data.assigned_to.id : 0,
+          done_ratio:T.data.done_ratio ? T.data.done_ratio : 0,
+        };
+        this._updateEditFields();
+        this.resetData = _.cloneDeep(this.formdata);
+        this.statusIndex = T.data.status ? _.findIndex(this.tasksStatuses, function (el) { el.id == T.data.status.id; }) : 0;
+        this.trackerIndex = T.data.tracker ? _.findIndex(this.tasksTrackers, function (el) { el.id == T.data.tracker.id; }) : 0;
+      },
+      open:function () {
+        document.body.appendChild(this);
+        this.$.dialog.open();
+      },
+      dismissDialog:function (e) {
+        var T = this;
+        if (e.detail.confirmed) {
+          var changed = _.reduce(T.formdata, function(result, value, key) {
+              return _.isEqual(value, T.resetData[key]) ?
+                  result : result.concat(key);
+          }, []);
+          var changes = {};
+          changed.forEach(function (key) {
+            changes[key] = T.formdata[key];
+          })
+          this.fire('save', {changes:changes, data:T.formdata});
+        }
+        this.fire('dismiss');
+        this.remove();
+      },
+      patchOverlay: function (e) {
+        if (e.target.withBackdrop) {
+          try {
+            e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
+          } catch (exc) {
+
+          }
+        }
+      }
+    });
+  </script>
+</dom-module>

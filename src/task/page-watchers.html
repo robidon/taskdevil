@@ -1,0 +1,54 @@
+<dom-module id="td-task-page-watchers">
+  <template>
+    <style type="text/css" include="td-task-styles">
+      .itemIcon {
+         margin-right:6px;
+         color:#777;
+         @apply(--layout-vertical)
+         @apply(--layout-top-left)
+      }
+      .card-content {
+        padding:0px!important;
+      }
+      .actions {
+        padding: 16px;
+        border-bottom:1px solid #c0c0c0;
+      }
+      paper-item {
+        --paper-item-selected-weight: normal;
+      }      
+    </style>
+
+    <div class="taskContentBlock layout vertical">
+      <paper-card class="taskContentBlockItem">
+        <div class="card-content">
+          <div class="actions layout center horizontal">
+            <div class="subpageTitle flex">Наблюдатели</div>
+            <paper-icon-button on-tap="actionSearchWatcher" icon="icons::search"></paper-icon-button>
+          </div>
+          <template is="dom-if" if="[[task.watchers.length]]">
+            <paper-listbox>
+              <template is="dom-repeat" items="[[task.watchers]]">
+                <paper-item>
+                  <div>[[item.name]]</div>
+                  <div suffix><paper-icon-button icon="icons:visibility-off"></paper-icon-button></div>
+                </paper-item>
+              </template>
+            </paper-listbox>
+          </template>
+          <template is="dom-if" if="[[!task.watchers.length]]">
+            <div class="emptyMessage">Список пуст</div>
+          </template>
+        </div>
+      </paper-card>
+    </div>
+  </template>
+  <script type="text/javascript">
+  Polymer({
+    is:'td-task-page-watchers',
+    ready:function () {
+
+    }
+  })
+  </script>
+</dom-module>

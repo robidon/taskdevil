@@ -1,40 +1,91 @@
 <dom-module id="td-menu-user">
   <template>
-    <style include="menu-styles">
+    <style include="menu-styles shared-styles">
+      :host{
+        display: block;
+        height: 100%;
+      }
+      .statusSwitcher {
+        position:relative;
+        line-height:40px;
+        text-align:center;
+        background:#fff;
+      }
+      #filtersDialog {
+        padding-bottom: 8px;
+        min-width: 300px;
+      }
+      .filterDialogContent {
+        padding:30px;
+      }
+      .menuTaskItem {
+        padding: 4px 0px;
+      }
     </style>
-    <div class="tabHeader">
-      <paper-input-container on-tap="toggleFilters">
-        <label>Задачи</label>
-        <input is="iron-input" value$="[[assigned_to_name]], [[project_name]]" disabled/>
-        <paper-icon-button id="filtersIcon" suffix icon="icons:arrow-drop-down"></paper-icon-button>
-      </paper-input-container>
-      <iron-collapse id="collapseFilters">
-        <td-user-select label="" value="{{assigned_to_id}}" username="{{assigned_to_name}}"></td-user-select>
-        <td-project-select label="" value="{{project_id}}" projectname="{{project_name}}"></td-project-select>
-        <paper-button on-tap="applyFilters">Применить</paper-button>
-      </iron-collapse>
-    </div>
 
-    <div class="tabContent">
-      <div class="layout horizontal no-wrap" style="line-height:40px; text-align:center">
-        <paper-icon-button icon="hardware:keyboard-arrow-left"></paper-icon-button>
-        <div class="flex">Текущие задачи</div>
-        <paper-icon-button icon="hardware:keyboard-arrow-right"></paper-icon-button>
+    <paper-dialog id="filtersDialog" on-iron-overlay-opened="patchOverlay" role="dialog" class="paper-dialog" with-backdrop always-on-top>
+      <div class="filterDialogContent">
+        <td-user-select label="Пользователь" value="{{user_id}}" username="{{user_name}}" empty="Все пользователи"></td-user-select>
+        <td-project-select label="Проект" value="{{project_id}}" projectname="{{project_name}}" empty="Все проекты"></td-project-select>
       </div>
-      <template is="dom-repeat" items="[[foundTasks]]">
-        [[item.subject]]
-      </template>
-    </div>
+      <div class="buttons">
+        <paper-button on-tap="applyFilters" raised class="custom indigo">Применить</paper-button>
+      </div>
+    </paper-dialog>
+
+
+    <paper-scroll-header-panel class="flex height100">
+
+      <div class="paper-header" style="position:relative">
+
+        <div class="tabHeader">
+          <paper-input-container on-tap="toggleFilters" style="cursor:pointer">
+            <label>Задачи</label>
+            <input is="iron-input" value$="[[user_name]], [[project_name]]" disabled style="cursor:pointer"/>
+            <iron-icon id="filtersIcon" suffix icon="editor:mode-edit"></iron-icon>
+            <paper-ripple></paper-ripple>
+          </paper-input-container>
+        </div>
+
+        <div class="layout horizontal no-wrap statusSwitcher">
+          <paper-icon-button on-tap="prevStatus" icon="hardware:keyboard-arrow-left"></paper-icon-button>
+          <div class="flex">[[selectedStatus.name]]</div>
+          <paper-icon-button on-tap="nextStatus" icon="hardware:keyboard-arrow-right"></paper-icon-button>
+        </div>
+
+      </div>
+
+      <div>
+        <td-preloader display="[[showPreloader]]"></td-preloader>
+        <template is="dom-if" if="[[!foundTasks.length]]">
+          <div class="emptyMessage">Нет таких задач</div>
+        </template>
+        <paper-listbox multi id="foundTasksList" selected="{{selectedTasks}}">
+          <template is="dom-repeat" items="[[foundTasks]]">
+            <paper-item>
+              <paper-item-body class="menuTaskItem">
+                <div><a href="/task-info/[[item.id]]" on-tap="">[[item.subject]]</a></div>
+                <div secondary>
+                  <td-task-tracker-icon size="16" tracker=[[item.tracker]] priority=[[item.priority]]></td-task-tracker-icon>
+                  [[item.project.name]]
+                </div>
+              </paper-item-body>
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </div>
+
+    </paper-scroll-header-panel>
 
   </template>
   <script type="text/javascript">
     Polymer({
       is:'td-menu-user',
       properties: {
-        'assigned_to_id':{
+        'user_id':{
           type:Number,
         },
-        'assigned_to_name':{
+        'user_name':{
           type:String,
         },
         'project_id':{
@@ -50,35 +101,71 @@
       ready: function () {
         this.foundTasks = [];
         var T = this;
+        this.statuses = [
+          3,2,8,1,9
+        ];
+        for(var i in this.statuses) {
+          this.statuses[i] = tasks.statuses[this.statuses[i]];
+        }
+        this.selectedStatusInd = 0;
+        this.showPreloader = true;
+        this.selectedStatus = this.statuses[this.selectedStatusInd];
         tasks.users.fetchCurrent().then(function (user) {
-          T.assigned_to_id = user.id;
-          T.assigned_to_name = user.firstname + " " + user.lastname;
+          T.user_id = user.id;
+          T.user_name = user.firstname + " " + user.lastname;
           T.filtersChanged();
         });
       },
+      nextStatus:function () {
+        this.selectedStatusInd = (this.selectedStatusInd + 1) % this.statuses.length;
+        this.selectedStatus = this.statuses[this.selectedStatusInd];
+        this.filtersChanged();
+      },
+      prevStatus:function () {
+        this.selectedStatusInd = (this.selectedStatusInd + this.statuses.length - 1) % this.statuses.length;
+        this.selectedStatus = this.statuses[this.selectedStatusInd];
+        this.filtersChanged();
+      },
       toggleFilters: function () {
-        this.$.filtersIcon.icon = (this.$.filtersIcon.icon == "icons:arrow-drop-up")?"icons:arrow-drop-down":"icons:arrow-drop-up";
-        this.$.collapseFilters.toggle();
+        this.$.filtersDialog.toggle();
       },
       applyFilters: function () {
         this.toggleFilters();
         this.filtersChanged();
       },
+      filterTasks: function (item) {
+        return item.status.id == this.selectedStatus.id;
+      },
       filtersChanged: function () {
         this.foundTasks = [];
         var params = {};
         var T = this;
-        params.status_id = '2,3';
+        T.showPreloader = true;
+        params.status_id = this.selectedStatus.id;
         if (T.project_id) {
           params.project_id = T.project_id;
         }
-        if (T.assigned_to_id) {
-          params.assigned_to_id = T.assigned_to_id;
+        if (T.user_id) {
+          params.assigned_to_id = T.user_id;
         }
         tasks.fetchBy(params).then(function (tasks) {
-          T.foundTasks = tasks;
-          console.log(T.foundTasks);
+          T.showPreloader = false;
+          T.allFoundTasks = tasks;
+          T.foundTasks = _.filter(T.allFoundTasks, function (el) {
+            return el.status.id == T.selectedStatus.id;
+          });
+        }, function () {
+          T.showPreloader = false;
         });
+      },
+      patchOverlay: function (e) {
+        if (e.target.withBackdrop) {
+          try {
+            e.target.backdropElement.parentNode.insertBefore(e.target, e.target.backdropElement);
+          } catch (exc) {
+
+          }
+        }
       }
     })
   </script>

@@ -16,6 +16,10 @@
     <h1>New view</h1>
 
     <paper-input value="{{search}}"></paper-input>
+
+    <app-location route="{{route}}"></app-location>
+    <paper-button on-tap="changeRoute">change route</paper-button>
+
     <app-localstorage-document key="search" data="{{search}}">
     </app-localstorage-document>
 
@@ -40,6 +44,10 @@
       },
       uscb: function (e) {
         console.log('us', e.detail.id);
+      },
+      changeRoute: function () {
+        window.history.pushState({}, null, '/');
+        window.dispatchEvent(new CustomEvent('location-changed'));
       }
     });
   </script>

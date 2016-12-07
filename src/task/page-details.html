@@ -1,0 +1,306 @@
+<dom-module is="td-task-page-details">
+  <template>
+    <style type="text/css" include="td-task-styles">
+    </style>
+
+
+
+    <div class="taskContentBlock layout vertical">
+    
+      <paper-card class="taskContentBlockItem">
+        <div class="card-content" style="overflow-x:hidden;">
+          <template is="dom-if" if="[[hasParent]]">
+            <div class="subject">
+              <span class="label"><a href="/task-info/[[parenttask.id]]">[[parenttask.subject]]</a></span><br/>
+              <span class$=[[editableClass]] edit="subject" on-tap="edit">[[task.subject]]</span>
+            </div>
+          </template>
+          <template is="dom-if" if="[[!hasParent]]">
+            <div class="subject">
+              <span class$=[[editableClass]] edit="subject" on-tap="edit">[[task.subject]]</span>
+            </div>
+          </template>
+          <html-echo html=[[formatText(task.description)]]></html-echo>
+        </div>
+
+        <div class="card-actions">
+          <template is='dom-if' if=[[availableActions.assignToMe]]>
+            <paper-button action='assignToMe' on-tap="action">Забрать себе</paper-button>
+          </template>
+          <template is='dom-if' if=[[availableActions.assign]]>
+            <paper-button action='assign' on-tap="action">Назначить</paper-button>
+          </template>
+          <template is='dom-if' if=[[availableActions.start]]>
+            <paper-button action='start' on-tap="action">Приступаю</paper-button>
+          </template>
+          <template is='dom-if' if=[[availableActions.pause]]>
+            <paper-button action='stop' on-tap="action">Откладываю</paper-button>
+          </template>
+          <template is='dom-if' if=[[availableActions.assignToQA]]>
+            <paper-button action='assignToQA' on-tap="action">Отправить в QA</paper-button>
+          </template>
+          <template is='dom-if' if=[[availableActions.close]]>
+            <paper-button action='close' on-tap="action">Закрыть</paper-button>
+          </template>
+          <template is='dom-if' if=[[availableActions.watch]]>
+            <paper-button action='watch' on-tap="action">Наблюдать</paper-button>
+          </template>
+          <template is='dom-if' if=[[availableActions.unwatch]]>
+            <paper-button action='unwatch' on-tap="action">Не наблюдать</paper-button>
+          </template>
+        </div>
+      </paper-card>
+
+      <paper-card class="taskContentBlockItem" style="background:#f5f5f5">
+        <div class="card-content layout horizontal wrap">
+          <div class="taskContentBlockItem flex" style="min-width:200px">
+            <template is="dom-if" if="[[editable]]">
+              <td-project-select edit="project_id" on-change="change" value="{{task.project.id}}" projectname="[[task.project.name]]" label="Проект"></td-project-select>
+            </template>
+            <template is="dom-if" if="[[!editable]]">
+              <div class="label">Проект</div>
+              <div>[[task.project.name]]</div>
+            </template>
+          </div>
+          <div class="taskContentBlockItem flex" style="min-width:200px">
+            <template is="dom-if" if="[[editable]]">
+              <paper-dropdown-menu label="Статус" style="width:100%">
+                <paper-listbox class="dropdown-content" edit="status_id" on-iron-select="change" id="status_id" selected="{{task.status.id}}" attr-for-selected='itemid'>
+                  <template is="dom-repeat" items="[[tasksStatuses]]">
+                    <paper-item itemid='[[item.id]]'>[[item.name]]</paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+            </template>
+            <template is="dom-if" if="[[!editable]]">
+              <div class="label">Статус</div>
+              <div class$=[[editableClass]] edit="status_id" on-tap="edit">[[task.status.name]]</div>
+            </template>
+          </div>
+          <div class="taskContentBlockItem flex" style="min-width:200px">
+            <template is="dom-if" if="[[editable]]">
+              <td-user-select edit="assigned_to_id" on-change="change" value="{{task.assigned_to.id}}" username="[[task.assigned_to.name]]" label="Назначен"></td-user-select>
+            </template>
+            <template is="dom-if" if="[[!editable]]">
+              <div class="label">Назначена</div>
+              <div class$=[[editableClass]] edit="assigned_to_id" on-tap="edit">[[task.assigned_to.name]]</div>
+            </template>
+          </div>
+          <div class="taskContentBlockItem flex" style="min-width:200px">
+            <div class="label">Прогресс</div>
+            <template is="dom-if" if=[[availableActions.progress]]>
+              <paper-slider class$="[[editableClass]]" style="width:100%" min="0" max="100" action='progress' on-change="action" value=[[task.done_ratio]]></paper-slider>
+            </template>
+            <template is="dom-if" if=[[!availableActions.progress]]>
+              <paper-progress style="width:100%;margin-top:10px" value=[[task.done_ratio]] min="0" max="100"></paper-progress>
+            </template>
+          </div>
+        </div>
+      </paper-card>
+
+      <paper-card class="taskContentBlockItem" style="background:#f5f5f5">
+        <div class="card-content taskContentBlock layout horizontal wrap">
+          <div class="taskContentBlockItem">
+            <div class="label">Автор</div>
+            <div>[[task.author.name]]</div>
+          </div>
+          <div class="taskContentBlockItem">
+            <div class="label">Дата создания</div>
+            <div><td-time time="[[task.created_on]]"></td-time></div>
+          </div>
+        </div>
+      </paper-card>
+
+    </div>
+
+
+  </template>
+  <script type="text/javascript">
+  Polymer ({
+    is:'td-task-page-details',
+    properties: {
+      task: {
+        type:Object,
+        observer:"taskChanged"
+      }
+    },
+    ready:function () {
+
+    },
+    taskChanged: function () {
+      var T = this;
+      T.parenttask = undefined;
+      T.hasParent = false;
+      if (!T.task) return;
+      if (T.task.parent && T.task.parent.id) {
+        tasks.fetchById(T.task.parent.id).then(function (parenttask) {
+          T.parenttask = parenttask;
+          T.hasParent = true;
+        });
+      }
+      T.availableActions = {
+        assignToQA: T.task.assigned_to
+          && T.task.assigned_to.id == tasks.config.userId
+          && T.task.tracker.id == tasks.TRACKER.DEFECT
+          && T.task.status.id == tasks.STATUS.INPROGRESS,
+        assign: T.task.status.id != tasks.STATUS.CLOSED
+          && ((T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId) || T.task.author.id == tasks.config.userId),
+        assignToMe: T.task.assigned_to && T.task.assigned_to.id != tasks.config.userId
+          && T.task.status.id != tasks.STATUS.CLOSED,
+        start: T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId
+          && ( T.task.status.id == tasks.STATUS.NEW || T.task.status.id == tasks.STATUS.ASSIGNED || T.task.status.id == tasks.STATUS.POSTPONED ), // назначено или новый
+        pause: T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId
+          && ( T.task.status.id == tasks.STATUS.INPROGRESS ), // в процессе
+        close: T.task.author.id == tasks.config.userId
+          && T.task.status.id != tasks.STATUS.CLOSED,
+        watch: T.task.author.id != tasks.config.userId
+          && T.task.assigned_to && T.task.assigned_to.id != tasks.config.userId
+          && -1 == _.findIndex(T.task.watchers, function (o) {
+            return o.id == tasks.config.userId
+          })
+          && T.task.status.id != tasks.STATUS.CLOSED,
+        unwatch: T.task.author.id != tasks.config.userId
+          && T.task.assigned_to && T.task.assigned_to.id != tasks.config.userId
+          && -1 != _.findIndex(T.task.watchers, function (o) {
+            return o.id == tasks.config.userId
+          })
+          && T.task.status.id != tasks.STATUS.CLOSED,
+        progress: T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId
+          && T.task.children && T.task.children.length == 0,
+        priority: T.task.author && T.task.author.id == tasks.config.userId
+          && T.task.children && T.task.children.length == 0,
+      }
+      T.editable = ((T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId) || (T.task.author.id == tasks.config.userId));
+      T.editableClass = T.editable ? "editable" :"";
+      if (T.editable) {
+        T.tasksStatuses = _.values(tasks.statuses);
+        T.taskCopy = _.cloneDeep(T.task);
+      }
+    },
+    edit:function (event) {
+      var T = this;
+      var edit = event.target.getAttribute('edit');
+      if (T.editableClass != 'editable') return;
+
+      var editDialog = new TDTaskDialogEdit('Обновить задачу', T.task, [edit]);
+      editDialog.addEventListener('save', function (e) {
+        var changes = e.detail.changes;
+        T.showPreloader = true;
+        tasks.updateTask(T.task.id, changes).then(function (res) {
+          T.fire("task_update");
+          T.showPreloader = false;
+        });
+        editDialog.remove();
+      });
+      document.body.appendChild(editDialog);
+      editDialog.open();
+    },
+    change: function (event) {
+      var field = event.target.getAttribute('edit');
+      var T = this;
+      var params = {};
+
+      if (!T.taskCopy) return;
+
+      switch(field) {
+        case "project_id":
+          if (T.taskCopy.project.id != event.target.value) {
+            params[field] = event.target.value;
+          }
+          break;
+        case "status_id":
+          if (T.taskCopy.status.id != event.target.selected) {
+            params[field] = event.target.selected;
+          }
+          break;
+      }
+      if (!_.isEmpty(params)) {
+        console.log('updated:', params);
+        tasks.updateTask(T.task.id, params).then(function (res) {
+          T.taskCopy = null;
+          T.fire("task_update");
+        });
+      }
+    },
+    action: function (event) {
+      var T = this;
+      var action = event.target.getAttribute('action');
+      switch (action) {
+        case 'assignToQA':
+          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.QA}).then(function (res) {
+            T.taskCopy = null;
+            T.fire("task_update");
+          });
+          break;
+        case 'assignToMe':
+          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.NEW, assigned_to_id: tasks.config.userId}).then(function (res) {
+            T.taskCopy = null;
+            T.fire("task_update");
+          });
+          break;
+        case 'assign':
+          var searchDialog = new TDUserChooser();
+          searchDialog.addEventListener('select', function (e) {
+            tasks.updateTask(T.task.id, {status_id: tasks.STATUS.ASSIGNED, assigned_to_id: e.detail.id}).then(function (res) {
+              T.taskCopy = null;
+              T.fire("task_update");
+            });
+            searchDialog.remove();
+          });
+          document.body.appendChild(searchDialog);
+          searchDialog.show();
+          break;
+        case 'start':
+          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.INPROGRESS}).then(function (res) {
+            T.taskCopy = null;
+            T.fire("task_update");
+          });
+          break;
+        case 'stop':
+          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.POSTPONED}).then(function (res) {
+            T.taskCopy = null;
+            T.fire("task_update");
+          });
+          break;
+        case 'watch':
+          break;
+        case 'unwatch':
+          break;
+        case 'close':
+          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.CLOSED}).then(function (res) {
+            T.taskCopy = null;
+            T.fire("task_update");
+          });
+          break;
+        case 'progress':
+          tasks.updateTask(T.task.id, {done_ratio: event.target.value}).then(function (res) {
+            T.taskCopy = null;
+            T.fire("task_update");
+          });
+          break;
+        case 'comment':
+          var text = T.$.newCommentValue.value.trim();
+          if (text) {
+            tasks.updateTask(T.task.id, {notes: text}).then(function (res) {
+              T.taskCopy = null;
+              T.fire("task_update");
+            });
+          }
+          break;
+        default:
+          console.log('unknown action')
+      }
+    },
+    formatText: function(val) {
+      if (!val) return '';
+      val = val.replace(
+        /((http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?)/g,
+        '"$1":$1'
+      );
+      val = textile.parse(val);
+      //val = val.replace("\n",'<br/>');*/
+      return val;
+    },
+  });
+  </script>
+</dom-module>

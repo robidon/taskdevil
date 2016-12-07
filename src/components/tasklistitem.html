@@ -74,9 +74,15 @@
       ready: function () {
       },
       dataChanged: function (data) {
-        this.iconClass = 'priority'+data.priority.id;
-        this.trackerIcon = tasks.trackers[data.tracker.id] ? tasks.trackers[data.tracker.id].icon : false;
-        this.statusIcon = tasks.statuses[data.status.id] ? tasks.statuses[data.status.id].icon : false;
+        if (data.priority) {
+          this.iconClass = 'priority'+data.priority.id;
+        }
+        if (data.tracker) {
+          this.trackerIcon = tasks.trackers[data.tracker.id] ? tasks.trackers[data.tracker.id].icon : false;
+        }
+        if (data.status) {
+          this.statusIcon = tasks.statuses[data.status.id] ? tasks.statuses[data.status.id].icon : false;
+        }
       },
       formatDate : function (val) {
         var d = moment(val);
