@@ -34,9 +34,13 @@ function debounce(func, wait, immediate) {
 function escapeRegExp(str) {
   return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
-function navigateTo(path) {
-  window.history.pushState({}, null, path);
-  window.dispatchEvent(new CustomEvent('location-changed'));
+function navigateTo(path, replace) {
+  if (replace) {
+    window.history.replaceState({}, null, path);
+  } else {
+    window.history.pushState({}, null, path);
+    window.dispatchEvent(new CustomEvent('location-changed'));
+  }
 }
 function isDragSourceExternalFile(dataTransfer){
   // Source detection for Safari v5.1.7 on Windows.

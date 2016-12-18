@@ -151,14 +151,6 @@
     showAttachmentDialog: function () {
       var T = this;
       $(T.$.files).click();
-      /*var dialog = new TDTaskDialogAttachment(this.task);
-      dialog.addEventListener('save', function (e) {
-        var uploads = e.detail;
-        tasks.attachments.add(T.task.id, uploads). then(function () {
-          T.fire('task_update');
-        });
-      });
-      dialog.open();*/
     },
     deleteAttachment: function (e) {
       var attachmentId = e.target.attachmentId;

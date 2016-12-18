@@ -114,6 +114,9 @@
           T.user_id = user.id;
           T.user_name = user.firstname + " " + user.lastname;
           T.filtersChanged();
+          T.showPreloader = false;          
+        }).catch(function () {
+          T.showPreloader = false;
         });
       },
       nextStatus:function () {
@@ -154,7 +157,7 @@
           T.foundTasks = _.filter(T.allFoundTasks, function (el) {
             return el.status.id == T.selectedStatus.id;
           });
-        }, function () {
+        }).catch(function () {
           T.showPreloader = false;
         });
       },

@@ -1,11 +1,5 @@
-
 <dom-module id="td-errors">
   <template>
-    <style type="text/css">
-    </style>
-    <paper-toast id="toast" text="[[errorText]]" class="fit-bottom">
-      
-    </paper-toast>
   </template>
   <script type="text/javascript">
   Polymer({
@@ -13,10 +7,57 @@
     ready:function () {
       var T = this;
       this.domHost.addEventListener('td.error.connection', function (e) {
-        T.errorText = e.detail;
-        T.$.toast.open();
+        var toast = new TDErrorToast(e.detail);
+      });
+      this.domHost.addEventListener('td.error.config', function (e) {
+        var toast = new TDErrorToast('Ошибка конфигурации');
+        navigateTo('/settings');
+      });
+      this.domHost.addEventListener('td.error.auth', function (e) {
+        var toast = new TDErrorToast('Ошибка авторизации',{url:'/settings',title:'Перейти к настройкам'});
       });
     }
   })
+  </script>
+</dom-module>
+
+
+<dom-module id="td-error-toast">
+  <template>
+    <style type="text/css">
+      a {
+        color:#fff;
+        float:right;
+      }
+    </style>
+    <paper-toast id="toast" text="[[text]]" class="fit-bottom" on-iron-overlay-closed ="_closed" duration="[[duration]]">
+      <template is="dom-if" if="[[link]]">
+        <a href="[[link.url]]" on-tap="_closed">[[link.title]]</a>
+      </template>
+    </paper-toast>
+  </template>
+  <script type="text/javascript">
+  var TDErrorToast = Polymer({
+    is:'td-error-toast',
+    factoryImpl: function(text, link) {
+      this.text = text;
+      document.body.appendChild(this);
+      if (link) {
+        if (!_.isObject(link)) {
+          link = {
+            url:link,
+            title:'Перейти'
+          }
+        }
+        this.link = link;
+        this.duration = 0;
+      }
+      this.$.toast.open();
+    },
+    _closed:function () {
+      this.remove();
+      return true
+    }
+  });
   </script>
 </dom-module>

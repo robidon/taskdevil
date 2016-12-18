@@ -9,43 +9,36 @@
       }
     </style>
 
-    <app-localstorage-document key="redmineURL" data="{{redmineURL}}"></app-localstorage-document>
-    <app-localstorage-document key="redmineApiKey" data="{{redmineApiKey}}"></app-localstorage-document>
-    <app-localstorage-document key="redmineUserId" data="{{redmineUserId}}"></app-localstorage-document>
-
-    <paper-input label="Redmine API URL" placeholder="https://www.com/" value={{redmineURL}}></paper-input>
-    <paper-input label="Redmine API KEY" value={{redmineApiKey}}></paper-input>
-    <paper-input label="Redmine User Id" value={{redmineUserId}}></paper-input>
-
+    <paper-input label="Redmine API URL" placeholder="https://www.com/" value={{config.redmineUrl}}></paper-input>
+    <paper-input label="Redmine API KEY" value={{config.redmineApiKey}}></paper-input>
+    <paper-input label="Redmine User Id" value={{config.redmineUserId}}></paper-input>
+    <paper-button on-tap="applyConfig">Применить</paper-button>
+    <paper-button on-tap="clearConfig">Очистить</paper-button>
   </template>
   <!-- Creates the element's prototype and registers it -->
   <script>
     Polymer({
       is: 'page-settings',
-      properties: {
-        redmineURL : {
-          type: String,
-          notify: true,
-          observer:"configChanged"
-        },
-        redmineApiKey : {
-          type: String,
-          notify: true,
-          observer:"configChanged"
-        },
-        redmineUserId : {
-          type: String,
-          notify: true,
-          observer:"configChanged"
-        }
+      observers:[
+        'configChanged(configSource.redmineUrl)',
+        'configChanged(configSource.redmineApiKey)',
+        'configChanged(configSource.redmineUserId)'
+      ],
+      ready:function () {
+        this.configSource = tasks.config;
+        this.config = _.clone(tasks.config);
       },
-      configChanged:function (newUrl) {
-        //console.log(this.redmineURL, this.redmineApiKey, this.redmineUserId);
-        tasks.updateConfig({
-          redmineURL:this.redmineURL,
-          apiKey: this.redmineApiKey,
-          userId: this.redmineUserId
-        });
+      configChanged:function () {
+        console.log('changed');
+        this.config = _.clone(tasks.config);
+      },
+      applyConfig:function () {
+        tasks.updateConfig(this.config);
+        this.configChanged();
+      },
+      clearConfig:function () {
+        tasks.clearLocalConfig();
+        this.config = _.clone(tasks.config);
       }
     });
   </script>

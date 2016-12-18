@@ -32,21 +32,30 @@
       }
     </style>
 
+    <app-location route="{{route}}"></app-location>
+    <app-route
+        route="{{route}}"
+        pattern="/:page"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+
     <div class="layout vertical height100">
 
-      <paper-tabs selected="{{selectedMenuTab}}" fallback-selection="0">
-        <paper-tab><paper-icon-button icon="list"></paper-icon-button></paper-tab>
-        <paper-tab><paper-icon-button icon="notification:folder-special"></paper-icon-button></paper-tab>
-        <paper-tab><paper-icon-button icon="search"></paper-icon-button></paper-tab>
-        <paper-tab><paper-icon-button icon="settings"></paper-icon-button></paper-tab>
-        <paper-tab on-tap="actionAddTask"><paper-icon-button icon="add"></paper-icon-button></paper-tab>
-      </paper-tabs>
+      <div class="layout horizontal">
+        <paper-tabs selected="{{selectedMenuTab}}" fallback-selection="0">
+          <paper-tab><paper-icon-button icon="list"></paper-icon-button></paper-tab>
+          <paper-tab><paper-icon-button icon="notification:folder-special"></paper-icon-button></paper-tab>
+          <paper-tab><paper-icon-button icon="search"></paper-icon-button></paper-tab>
+        </paper-tabs>
+        <div><paper-icon-button icon="settings"></paper-icon-button></div>
+        <div><paper-icon-button on-tap="actionAddTask" icon="add"></paper-icon-button></div>
+      </div>
+
       <iron-pages selected="{{selectedMenuTab}}" class="flex">
 
         <td-menu-user></td-menu-user>
         <td-menu-queries></td-menu-queries>
         <td-menu-search></td-menu-search>
-
         <div>
           <a name="settings" href="/settings">Настройки</a>
         </div>
@@ -59,6 +68,16 @@
   <script type="text/javascript">
   Polymer({
     is: 'td-menu',
+    properties: {
+    },
+    observers: [
+      'routeDataChange(routeData.page)'
+    ],
+    routeDataChange:function (page) {
+      if (page == 'settings') {
+        this.selectedMenuTab = 3;
+      }
+    },
     actionAddTask: function () {
       var initdata = {
         author:tasks.config.user,

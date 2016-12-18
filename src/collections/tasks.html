@@ -6,10 +6,33 @@
     var tasks = {};
   </script>
   <script type="text/javascript" src="js/utils.js"></script>
+  <script type="text/javascript" src="js/config.js"></script>
   <script type="text/javascript" src="js/collections.js"></script>
-  <script type="text/javascript" src="tasks.js"></script>
+  <script type="text/javascript" src="js/transport.js"></script>
+  <script type="text/javascript" src="js/tasks.js"></script>
+
+  <script type="text/javascript" src="js/attachments.js"></script>
+  <script type="text/javascript" src="js/users.js"></script>
+  <script type="text/javascript" src="js/queries.js"></script>
+  <script type="text/javascript" src="js/projects.js"></script>
   <script type="text/javascript">
   Polymer ({
-    is:"td-collections-tasks"
+    is:"td-collections-tasks",
+    ready:function () {
+      var T = this;
+      tasks.loadLocalConfig().then(function (config) {
+        if (_.isEmpty(config)) {
+          T.fire('td.error.config');
+        }
+        T.fire('td.config');
+        tasks.users.fetchCurrent().then(function () {
+          T.fire('td.auth');
+        }, function () {
+          T.fire('td.error.auth');
+        })
+      }, function () {
+        T.fire('td.error.browser');
+      });
+    }
   })</script>
 </dom-module>
