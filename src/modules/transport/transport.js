@@ -1,14 +1,25 @@
-(function () {
+/*
 
-  tasks = _.extend(tasks, {
+Данные берутся через server side proxy, написанным на nodejs в файле proxy.js на cors-anywhere 
+При релизе надо переделать забор данных с редмайна на jsonp, если версия редмайна позволяет (более 2.1 вроде)
+Если версия редмайна не позволяет, то придётся так же юзать корс, но с определенными ограничениями, какие домены можно запрашивать, а какие нельзя
+
+*/
+(function (TD) {
+
+  TD = _.extend(TD, {
     transport: {
-      _query: function(resource, params, success, error) {
+      _query: function(resource, params, success, error, customConfig) {
         var qs = '';
         for (var p in params) {
           qs += '&'+p+'='+params[p];
         }
+        var config = _.clone(TD.config);
+        if (customConfig) {
+          config = _.extend(config, customConfig);
+        }
         $.ajax({
-            url: tasks.config.redmineUrl + "/"+resource+".json?key="+tasks.config.apiKey+qs,
+            url: config.redmineUrl + "/"+resource+".json?key="+config.apiKey+qs,
             //key - это ключ api из настроек профиля
 
             method: "GET",
@@ -18,9 +29,9 @@
         });
       },
       _put: function(resource, params, success, error) {
-        params['key'] = tasks.config.apiKey;
+        params['key'] = TD.config.apiKey;
         $.ajax({
-            url: tasks.config.redmineUrl + "/"+resource+".json",
+            url: TD.config.redmineUrl + "/"+resource+".json",
             method:'PUT',
             dataType: "text",
             data: params,
@@ -29,9 +40,9 @@
         });
       },
       _post: function(resource, params, success, error) {
-        params['key'] = tasks.config.apiKey;
+        params['key'] = TD.config.apiKey;
         $.ajax({
-            url: tasks.config.redmineUrl + "/"+resource+".json",
+            url: TD.config.redmineUrl + "/"+resource+".json",
             method:'POST',
             dataType: "json",
             data: params,
@@ -44,9 +55,9 @@
         for (var p in params) {
           qs += '&'+p+'='+params[p];
         }
-        params['key'] = tasks.config.apiKey;
+        params['key'] = TD.config.apiKey;
         $.ajax({
-            url: tasks.config.redmineUrl + "/"+resource+".json?key="+tasks.config.apiKey+qs,
+            url: TD.config.redmineUrl + "/"+resource+".json?key="+TD.config.apiKey+qs,
             method:'DELETE',
             dataType: "text",
             data: params,
@@ -56,7 +67,7 @@
       },
       _upload: function (file, success, error, progress) {
         $.ajax({
-          url:  tasks.config.redmineUrl + '/uploads.json?key=' + tasks.config.apiKey,
+          url:  TD.config.redmineUrl + '/uploads.json?key=' + TD.config.apiKey,
           type: 'POST',
           contentType: 'application/octet-stream',  
           data: file,
@@ -73,4 +84,4 @@
     }
   });
 
-})();
+})(TD);

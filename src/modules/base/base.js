@@ -1,22 +1,15 @@
-/*
 
-Данные берутся через server side proxy, написанным на nodejs в файле proxy.js на cors-anywhere 
-При релизе надо переделать забор данных с редмайна на jsonp, если версия редмайна позволяет (более 2.1 вроде)
-Если версия редмайна не позволяет, то придётся так же юзать корс, но с определенными ограничениями, какие домены можно запрашивать, а какие нельзя
 
-*/
+var TD = {};
+
 function __modifyCorsUrl (url) {
   return 'http://127.0.0.1:8081/' + url;
 }
 jQuery.ajaxPrefilter(function(options) {
     if (options.crossDomain && jQuery.support.cors) {
-        options.url = __modifyCorsUrl(options.url);//'http://192.168.1.72:8081/' + options.url;
+        options.url = __modifyCorsUrl(options.url);
     }
 });
-
-
-
-
 function debounce(func, wait, immediate) {
   var timeout;
   return function() {

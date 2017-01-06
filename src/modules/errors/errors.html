@@ -10,11 +10,11 @@
         var toast = new TDErrorToast(e.detail);
       });
       this.domHost.addEventListener('td.error.config', function (e) {
-        var toast = new TDErrorToast('Ошибка конфигурации');
+        var toast = new TDErrorToast('Ошибка конфигурации', {url:'/settings',title:'Перейти к настройкам'});
         navigateTo('/settings');
       });
       this.domHost.addEventListener('td.error.auth', function (e) {
-        var toast = new TDErrorToast('Ошибка авторизации',{url:'/settings',title:'Перейти к настройкам'});
+        var toast = new TDErrorToast('Ошибка авторизации');
       });
     }
   })

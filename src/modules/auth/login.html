@@ -1,0 +1,56 @@
+<link rel="import" href="../base/styles.html">
+<dom-module id="td-auth-login">
+  <!-- Defines the element's style and local DOM -->
+  <template>
+    <style include="iron-flex iron-flex-alignment iron-positioning">
+      :host {
+        display: block;
+      }
+      #container {
+        padding:16px;
+      }
+      #loginform {
+        min-width:300px;
+      }
+      #loginbutton {
+        color: white;
+        background-color:var(--app-primary-color);
+      }
+    </style>
+
+    <div id="container" class="layout horizontal fullbleed fit center center-justified">
+      <div id="loginform" heading="Добро пожаловать">
+        <div class="card-header">
+          <h2>Добро пожаловать</h2>
+        </div>
+        <div class="card-content">
+          <paper-input label="Redmine URL" placeholder="Например, https://xxx.yyy.zzz/" value={{redmineUrl}}></paper-input>
+          <paper-input label="Ваш API KEY" placeholder="Скопируйте из настроек аккаунта" value={{redmineApiKey}}></paper-input>
+        </div>
+        <div class="card-actions">
+          <paper-button id="loginbutton" raised on-tap="tryLogin">Войти</paper-button>
+        </div>
+      </div>
+    </div>
+  </template>
+  <!-- Creates the element's prototype and registers it -->
+  <script>
+    Polymer({
+      is: 'td-auth-login',
+      ready:function () {
+
+      },
+      tryLogin: function () {
+        var T = this;
+        TD.auth.tryLogin({
+          redmineUrl: _.trimEnd(this.redmineUrl,'/\\'),
+          apiKey: this.redmineApiKey
+        }).then(function () {
+          console.log('loggedIn');
+        }).catch(function () {
+          T.fire('td.error.auth')
+        });
+      }
+    });
+  </script>
+</dom-module>

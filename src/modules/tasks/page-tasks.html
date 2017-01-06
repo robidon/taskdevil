@@ -1,0 +1,173 @@
+<link rel="import" href="dialogs/userchooser.html">
+<link rel="import" href="dialogs/projectchooser.html">
+<link rel="import" href="components/time.html">
+<link rel="import" href="components/task-icons.html">
+<link rel="import" href="tasks.html">
+<link rel="import" href="menu/menu.html">
+
+<dom-module id="td-page-tasks">
+  <template>
+    <style include="td-base-styles iron-flex iron-flex-alignment">
+      :host {
+        --app-primary-color: #4285f4;
+        --app-secondary-color: black;
+
+        display: block;
+      }
+
+      app-header {
+        color: #fff;
+        background-color: var(--app-primary-color);
+      }
+      app-header paper-icon-button {
+        --paper-icon-button-ink-color: white;
+      }
+
+      .appdrawer {
+        --app-drawer-width:300px;
+        -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);
+        -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);
+        box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);
+      }
+
+      .drawer-list {
+        margin: 0 20px;
+      }
+
+      .drawer-list a {
+        display: block;
+
+        padding: 0 16px;
+
+        text-decoration: none;
+
+        color: var(--app-secondary-color);
+
+        line-height: 40px;
+      }
+
+      .drawer-list a.iron-selected {
+        color: black;
+
+        font-weight: bold;
+      }
+
+    </style>
+
+    <td-collections-tasks></td-collections-tasks>
+
+    <app-location route="{{route}}"></app-location>
+    <app-route
+        route="{{route}}"
+        pattern="/:page"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+    <td-errors></td-errors>
+      
+
+    <app-drawer-layout fullbleed>
+      <!-- Drawer content -->
+      <app-drawer class="appdrawer" drawer swipe-open>
+
+        <td-menu></td-menu>
+
+      </app-drawer>
+
+      <iron-pages
+          style="height:100%"
+          selected="[[page]]"
+          attr-for-selected="name"
+          fallback-selection="error-404"
+          role="main"
+          selected-item="{{selectedPage}}">
+        <page-today name="today" title="Сегодня"></page-today>
+        <page-by-project name="by-project" title="{{pageTitle}}" route="{{route}}"></page-by-project>
+        <page-by-query name="by-query" title="{{pageTitle}}" route="{{route}}"></page-by-query>
+        <page-calendar name="calendar" title="Календарь"></page-calendar>
+        <page-backlog name="backlog" title="Бэклог"></page-backlog>
+        <page-notes name="notes" title="Заметки"></page-notes>
+        <page-settings name="settings" title="Настройки"></page-settings>
+        <page-task-info name="task-info" title={{pageTitle}} route={{route}} moremenu={{moreMenuItems}}></page-task-info>
+        <page-error-404 name="error-404" title="404"></page-error-404>
+      </iron-pages>
+
+    </app-drawer-layout>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'td-page-tasks',
+
+      properties: {
+        page: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_pageChanged'
+        },
+        subrouteData: {
+          type: Object,
+          reflectToAttribute: true
+        },
+        selectedPage: {
+          type: Object,
+          reflectToAttribute: true,
+          observer: '_selectedPageChanged'
+        },
+        moreMenuItems: {
+          type:Array,
+          reflectToAttribute: true
+        },
+        currentProject: {
+          type:Object,
+          reflectToAttribute: true,
+          observer: '_currentProjectChanged'
+        }
+      },
+
+      observers: [
+        '_routePageChanged(routeData.page)'
+      ],
+
+      ready: function () {
+        this.moreMenuItems = [];
+        this.selectedMenu = 0;
+        var T = this;
+      },
+
+      _currentProjectChanged: function(project) {
+        console.log('current project change', project);
+      },
+
+      _routePageChanged: function(page) {
+        this.moreMenuItems = [];
+        this.page = page || 'today';
+      },
+
+      _pageChanged: function(page) {
+        // Load page import on demand. Show 404 page if fails
+        var resolvedPageUrl = this.resolveUrl(page + '.html');
+        this.importHref(resolvedPageUrl, null, this._showPage404, true);
+      },
+
+      _selectedPageChanged: function (selPage) {
+        var T = this;
+        if (T.selectedPage) {
+          T.pageTitle = T.selectedPage.title;
+        }
+      },
+
+      _ifHideMoreMenu: function (menu) {
+        return !this.moreMenuItems || !this.moreMenuItems.length;
+      },
+
+      _moreMenuAction: function (e) {
+        e.target.item.action(e);
+      },
+
+      _showPage404: function() {
+        this.page = 'error-404';
+      }
+    });
+  </script>
+</dom-module>
