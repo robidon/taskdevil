@@ -1,5 +1,3 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 
 <dom-module id="td-projectchooser">
   <template>
@@ -38,7 +36,7 @@
         T.searchString = '';
         T.allProjects = [];
         T.projectSearchResults = T.allProjects.slice();
-        tasks.projects.fetchAll().then(function (projects) {
+        TD.projects.fetchAll().then(function (projects) {
           T.allProjects = projects;
           T.projectSearchResults = T.allProjects.slice();
         });

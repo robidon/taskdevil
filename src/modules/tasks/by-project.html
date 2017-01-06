@@ -1,7 +1,5 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
 
 <link rel="import" href="components/tasklist.html">
-<link rel="import" href="shared-styles.html">
 
 <dom-module id="page-by-project">
   <template>
@@ -30,11 +28,11 @@
         if (project == T.loadedProject) return;
         T.tasks = [];
         T.showPreloader = true;
-        var projectInfoPromise = tasks.projects.fetchById(project)
+        var projectInfoPromise = TD.projects.fetchById(project)
         projectInfoPromise.then(function (pr) {
           T.title = pr.name;
         });
-        tasks.fetchByProject(T.routeData.project).then(function (tasks) {
+        TD.tasks.fetchByProject(T.routeData.project).then(function (tasks) {
           T.tasks = tasks;
           T.loadedProject = project;
           projectInfoPromise.then(function () {

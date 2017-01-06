@@ -1,12 +1,14 @@
 (function () {
 	
+  if (!('tasks' in TD)) TD.tasks = {};
+
 	var issues = [];
 
-	tasks = _.extend(tasks, {
+	TD.tasks = _.extend(TD.tasks, {
 		fetchAll: function () {
 			var T = this;
 			return new Promise(function (resolve, reject) {
-				tasks.transport._query('issues', {'assigned_to_id':'me'}, function (response) {
+				TD.transport._query('issues', {'assigned_to_id':'me'}, function (response) {
 					resolve(response.issues);
 				}, function (error) {
 					reject("Задачи не найдены");
@@ -16,7 +18,7 @@
 		fetchByProject: function (project) {
 			var T = this;
 			return new Promise(function (resolve, reject) {
-				tasks.transport._query('issues', {'project_id':project}, function (response) {
+				TD.transport._query('issues', {'project_id':project}, function (response) {
 					resolve(response.issues);
 				}, function (error) {
 					reject("Задачи не найдены");
@@ -26,7 +28,7 @@
 		fetchByUser: function (user) {
 			var T = this;
 			return new Promise(function (resolve, reject) {
-				tasks.transport._query('issues', {'assigned_to_id':user}, function (response) {
+				TD.transport._query('issues', {'assigned_to_id':user}, function (response) {
 					resolve(response.issues);
 				}, function (error) {
 					reject("Задачи не найдены");
@@ -40,7 +42,7 @@
 				if (project_id) {
 					params['project_id'] = project_id
 				};
-				tasks.transport._query('issues', params, function (response) {
+				TD.transport._query('issues', params, function (response) {
 					resolve(response.issues);
 				}, function (error) {
 					reject("Задачи не найдены");
@@ -50,7 +52,7 @@
 		fetchBy: function(params) {
 			var T = this;
 			return new Promise(function (resolve, reject) {
-				tasks.transport._query('issues', params, function (response) {
+				TD.transport._query('issues', params, function (response) {
 					resolve(response.issues);
 				}, function (error) {
 					reject("Задачи не найдены");
@@ -60,7 +62,7 @@
 		fetchById: function (id) {
 			var T = this;
 			return new Promise(function (resolve, reject) {
-				tasks.transport._query("issues/"+id, {include:'watchers,children,attachments,relations,watchers,changesets,journals'}, function (response) {
+				TD.transport._query("issues/"+id, {include:'watchers,children,attachments,relations,watchers,changesets,journals'}, function (response) {
 					resolve(response.issue);
 				}, function (error) {
 					reject("Задача не найдена #" + taskId);
@@ -70,7 +72,7 @@
 		updateTask: function (id, fields) {
 			var T = this;
 			return new Promise(function (resolve, reject) {
-				tasks.transport._put("issues/"+id, {issue:fields}, function (response) {
+				TD.transport._put("issues/"+id, {issue:fields}, function (response) {
 					resolve();
 				}, function (error) {
 					reject("Не получилось обновить задачу #" + id);
@@ -86,7 +88,7 @@
 			//console.log(data);
 			//return;
 			return new Promise(function (resolve, reject) {
-				tasks.transport._post("issues", {issue:data}, function (response) {
+				TD.transport._post("issues", {issue:data}, function (response) {
 					resolve(response.issue);
 				}, function (error) {
 					var errText = '';

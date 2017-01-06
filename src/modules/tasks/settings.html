@@ -25,20 +25,20 @@
         'configChanged(configSource.redmineUserId)'
       ],
       ready:function () {
-        this.configSource = tasks.config;
-        this.config = _.clone(tasks.config);
+        this.configSource = TD.config;
+        this.config = _.clone(TD.config);
       },
       configChanged:function () {
         console.log('changed');
-        this.config = _.clone(tasks.config);
+        this.config = _.clone(TD.config);
       },
       applyConfig:function () {
-        tasks.updateConfig(this.config);
+        TD.updateConfig(this.config);
         this.configChanged();
       },
       clearConfig:function () {
-        tasks.clearLocalConfig();
-        this.config = _.clone(tasks.config);
+        TD.clearLocalConfig();
+        this.config = _.clone(TD.config);
       }
     });
   </script>

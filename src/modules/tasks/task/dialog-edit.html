@@ -92,9 +92,9 @@
       },
       ready: function () {
         this.title = 'Изменить'; // значение по умолчанию
-        this.tasksStatuses = _.values(tasks.statuses);
-        this.tasksTrackers = _.values(tasks.trackers);
-        this.tasksPriorities = _.values(tasks.priorities);
+        this.tasksStatuses = _.values(TD.statuses);
+        this.tasksTrackers = _.values(TD.trackers);
+        this.tasksPriorities = _.values(TD.priorities);
       },
       _updateEditFields: function () {
         var ef = {}

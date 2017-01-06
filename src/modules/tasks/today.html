@@ -1,7 +1,5 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
 
 <link rel="import" href="components/tasklist.html">
-<link rel="import" href="shared-styles.html">
 
 <dom-module id="page-today">
   <template>
@@ -12,7 +10,7 @@
       is: 'page-today',
       ready: function () {
         var T = this;
-        tasks.fetchAll().then(function (tasks) {
+        TD.tasks.fetchAll().then(function (tasks) {
           T.tasks = tasks;
         });
       }

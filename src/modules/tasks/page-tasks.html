@@ -11,7 +11,6 @@
       :host {
         --app-primary-color: #4285f4;
         --app-secondary-color: black;
-
         display: block;
       }
 
@@ -130,6 +129,7 @@
       ],
 
       ready: function () {
+        console.log('page',this.page);
         this.moreMenuItems = [];
         this.selectedMenu = 0;
         var T = this;
@@ -140,11 +140,14 @@
       },
 
       _routePageChanged: function(page) {
+        console.log('page',page);
+
         this.moreMenuItems = [];
         this.page = page || 'today';
       },
 
       _pageChanged: function(page) {
+        console.log('page',page)
         // Load page import on demand. Show 404 page if fails
         var resolvedPageUrl = this.resolveUrl(page + '.html');
         this.importHref(resolvedPageUrl, null, this._showPage404, true);

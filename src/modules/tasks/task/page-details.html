@@ -133,47 +133,47 @@
       T.hasParent = false;
       if (!T.task) return;
       if (T.task.parent && T.task.parent.id) {
-        tasks.fetchById(T.task.parent.id).then(function (parenttask) {
+        TD.tasks.fetchById(T.task.parent.id).then(function (parenttask) {
           T.parenttask = parenttask;
           T.hasParent = true;
         });
       }
       T.availableActions = {
         assignToQA: T.task.assigned_to
-          && T.task.assigned_to.id == tasks.config.userId
-          && T.task.tracker.id == tasks.TRACKER.DEFECT
-          && T.task.status.id == tasks.STATUS.INPROGRESS,
-        assign: T.task.status.id != tasks.STATUS.CLOSED
-          && ((T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId) || T.task.author.id == tasks.config.userId),
-        assignToMe: T.task.assigned_to && T.task.assigned_to.id != tasks.config.userId
-          && T.task.status.id != tasks.STATUS.CLOSED,
-        start: T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId
-          && ( T.task.status.id == tasks.STATUS.NEW || T.task.status.id == tasks.STATUS.ASSIGNED || T.task.status.id == tasks.STATUS.POSTPONED ), // назначено или новый
-        pause: T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId
-          && ( T.task.status.id == tasks.STATUS.INPROGRESS ), // в процессе
-        close: T.task.author.id == tasks.config.userId
-          && T.task.status.id != tasks.STATUS.CLOSED,
-        watch: T.task.author.id != tasks.config.userId
-          && T.task.assigned_to && T.task.assigned_to.id != tasks.config.userId
+          && T.task.assigned_to.id == TD.auth.getCurrentUser().id
+          && T.task.tracker.id == TD.TRACKER.DEFECT
+          && T.task.status.id == TD.STATUS.INPROGRESS,
+        assign: T.task.status.id != TD.STATUS.CLOSED
+          && ((T.task.assigned_to && T.task.assigned_to.id == TD.config.userId) || T.task.author.id == TD.config.userId),
+        assignToMe: T.task.assigned_to && T.task.assigned_to.id != TD.config.userId
+          && T.task.status.id != TD.STATUS.CLOSED,
+        start: T.task.assigned_to && T.task.assigned_to.id == TD.config.userId
+          && ( T.task.status.id == TD.STATUS.NEW || T.task.status.id == TD.STATUS.ASSIGNED || T.task.status.id == TD.STATUS.POSTPONED ), // назначено или новый
+        pause: T.task.assigned_to && T.task.assigned_to.id == TD.auth.getCurrentUser().id
+          && ( T.task.status.id == TD.STATUS.INPROGRESS ), // в процессе
+        close: T.task.author.id == TD.auth.getCurrentUser().id
+          && T.task.status.id != TD.STATUS.CLOSED,
+        watch: T.task.author.id != TD.auth.getCurrentUser().id
+          && T.task.assigned_to && T.task.assigned_to.id != TD.auth.getCurrentUser().id
           && -1 == _.findIndex(T.task.watchers, function (o) {
-            return o.id == tasks.config.userId
+            return o.id == TD.auth.getCurrentUser().id
           })
-          && T.task.status.id != tasks.STATUS.CLOSED,
-        unwatch: T.task.author.id != tasks.config.userId
-          && T.task.assigned_to && T.task.assigned_to.id != tasks.config.userId
+          && T.task.status.id != TD.STATUS.CLOSED,
+        unwatch: T.task.author.id != TD.auth.getCurrentUser().id
+          && T.task.assigned_to && T.task.assigned_to.id != TD.auth.getCurrentUser().id
           && -1 != _.findIndex(T.task.watchers, function (o) {
-            return o.id == tasks.config.userId
+            return o.id == TD.auth.getCurrentUser().id
           })
-          && T.task.status.id != tasks.STATUS.CLOSED,
-        progress: T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId
+          && T.task.status.id != TD.STATUS.CLOSED,
+        progress: T.task.assigned_to && T.task.assigned_to.id == TD.auth.getCurrentUser().id
           && T.task.children && T.task.children.length == 0,
-        priority: T.task.author && T.task.author.id == tasks.config.userId
+        priority: T.task.author && T.task.author.id == TD.auth.getCurrentUser().id
           && T.task.children && T.task.children.length == 0,
       }
-      T.editable = ((T.task.assigned_to && T.task.assigned_to.id == tasks.config.userId) || (T.task.author.id == tasks.config.userId));
+      T.editable = ((T.task.assigned_to && T.task.assigned_to.id == TD.auth.getCurrentUser().id) || (T.task.author.id == TD.auth.getCurrentUser().id));
       T.editableClass = T.editable ? "editable" :"";
       if (T.editable) {
-        T.tasksStatuses = _.values(tasks.statuses);
+        T.tasksStatuses = _.values(TD.statuses);
         T.taskCopy = _.cloneDeep(T.task);
       }
     },
@@ -186,7 +186,7 @@
       editDialog.addEventListener('save', function (e) {
         var changes = e.detail.changes;
         T.showPreloader = true;
-        tasks.updateTask(T.task.id, changes).then(function (res) {
+        TD.tasks.updateTask(T.task.id, changes).then(function (res) {
           T.fire("task_update");
           T.showPreloader = false;
         });
@@ -216,7 +216,7 @@
       }
       if (!_.isEmpty(params)) {
         console.log('updated:', params);
-        tasks.updateTask(T.task.id, params).then(function (res) {
+        TD.tasks.updateTask(T.task.id, params).then(function (res) {
           T.taskCopy = null;
           T.fire("task_update");
         });
@@ -227,13 +227,13 @@
       var action = event.target.getAttribute('action');
       switch (action) {
         case 'assignToQA':
-          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.QA}).then(function (res) {
+          TD.tasks.updateTask(T.task.id, {status_id: TD.STATUS.QA}).then(function (res) {
             T.taskCopy = null;
             T.fire("task_update");
           });
           break;
         case 'assignToMe':
-          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.NEW, assigned_to_id: tasks.config.userId}).then(function (res) {
+          TD.tasks.updateTask(T.task.id, {status_id: TD.STATUS.NEW, assigned_to_id: TD.auth.getCurrentUser().id}).then(function (res) {
             T.taskCopy = null;
             T.fire("task_update");
           });
@@ -241,7 +241,7 @@
         case 'assign':
           var searchDialog = new TDUserChooser();
           searchDialog.addEventListener('select', function (e) {
-            tasks.updateTask(T.task.id, {status_id: tasks.STATUS.ASSIGNED, assigned_to_id: e.detail.id}).then(function (res) {
+            TD.tasks.updateTask(T.task.id, {status_id: TD.STATUS.ASSIGNED, assigned_to_id: e.detail.id}).then(function (res) {
               T.taskCopy = null;
               T.fire("task_update");
             });
@@ -251,13 +251,13 @@
           searchDialog.show();
           break;
         case 'start':
-          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.INPROGRESS}).then(function (res) {
+          TD.tasks.updateTask(T.task.id, {status_id: TD.STATUS.INPROGRESS}).then(function (res) {
             T.taskCopy = null;
             T.fire("task_update");
           });
           break;
         case 'stop':
-          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.POSTPONED}).then(function (res) {
+          TD.tasks.updateTask(T.task.id, {status_id: TD.STATUS.POSTPONED}).then(function (res) {
             T.taskCopy = null;
             T.fire("task_update");
           });
@@ -267,13 +267,13 @@
         case 'unwatch':
           break;
         case 'close':
-          tasks.updateTask(T.task.id, {status_id: tasks.STATUS.CLOSED}).then(function (res) {
+          TD.tasks.updateTask(T.task.id, {status_id: TD.STATUS.CLOSED}).then(function (res) {
             T.taskCopy = null;
             T.fire("task_update");
           });
           break;
         case 'progress':
-          tasks.updateTask(T.task.id, {done_ratio: event.target.value}).then(function (res) {
+          TD.tasks.updateTask(T.task.id, {done_ratio: event.target.value}).then(function (res) {
             T.taskCopy = null;
             T.fire("task_update");
           });
@@ -281,7 +281,7 @@
         case 'comment':
           var text = T.$.newCommentValue.value.trim();
           if (text) {
-            tasks.updateTask(T.task.id, {notes: text}).then(function (res) {
+            TD.tasks.updateTask(T.task.id, {notes: text}).then(function (res) {
               T.taskCopy = null;
               T.fire("task_update");
             });

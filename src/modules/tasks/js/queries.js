@@ -2,7 +2,7 @@
   
   var queries = []; 
 
-  tasks = _.extend(tasks, {
+  TD = _.extend(TD, {
     queries: {
       fetchAll: function () {
         return new Promise(function(resolve, reject) {
@@ -10,7 +10,7 @@
             resolve(queries);
             return;
           }
-          tasks.transport._query("queries", {limit:100}, function (response) {
+          TD.transport._query("queries", {limit:100}, function (response) {
             response.queries.forEach(function (p) {
               queries.push(p);
             });
@@ -28,7 +28,7 @@
                 res.push(q);
               }
             });
-            res = _.sortByOrder(res, [ 'is_public', 'id' ], [ 'desc', 'asc' ]);
+            res = _.orderBy(res, [ 'is_public', 'id' ], [ 'desc', 'asc' ]);
             resolve(res);
           }, reject);
         });

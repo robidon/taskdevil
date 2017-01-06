@@ -177,14 +177,14 @@
         T.showPreloader = true;
         T.selectedTab = 0;
         T.moremenu = [];
-        tasks.fetchById(id).then(function (task) {
+        TD.tasks.fetchById(id).then(function (task) {
           console.log(task);
           T.task = task;
           T.title = task.tracker.name + ": " + task.id;
           if (task.children && task.children.length) {
             task.children.forEach(function (el) {
               if (el.tracker) {
-                el.trackerIcon = tasks.trackers[el.tracker.id] ? tasks.trackers[el.tracker.id].icon : false;
+                el.trackerIcon = TD.trackers[el.tracker.id] ? TD.trackers[el.tracker.id].icon : false;
               }
             });
           }
@@ -199,7 +199,7 @@
                 editDialog.addEventListener('save', function (event) {
                   var changes = event.detail.changes;
                   T.showPreloader = true;
-                  tasks.updateTask(T.id, changes).then(function (res) {
+                  TD.tasks.updateTask(T.id, changes).then(function (res) {
                     T.updateView();
                     T.showPreloader = false;
                   });

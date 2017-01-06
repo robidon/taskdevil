@@ -1,11 +1,6 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
-<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html">
-<link rel="import" href="../shared-styles.html">
-
 <dom-module id="td-tasklistitem">
   <template>
-    <style include="shared-styles">
+    <style>
       :host {
         display: block;
       }
@@ -78,10 +73,10 @@
           this.iconClass = 'priority'+data.priority.id;
         }
         if (data.tracker) {
-          this.trackerIcon = tasks.trackers[data.tracker.id] ? tasks.trackers[data.tracker.id].icon : false;
+          this.trackerIcon = TD.trackers[data.tracker.id] ? TD.trackers[data.tracker.id].icon : false;
         }
         if (data.status) {
-          this.statusIcon = tasks.statuses[data.status.id] ? tasks.statuses[data.status.id].icon : false;
+          this.statusIcon = TD.statuses[data.status.id] ? TD.statuses[data.status.id].icon : false;
         }
       },
       formatDate : function (val) {

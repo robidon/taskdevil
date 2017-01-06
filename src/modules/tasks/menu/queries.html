@@ -1,5 +1,3 @@
-<link rel="import" href="../shared-styles.html">
-
 <dom-module id="td-menu-queries">
   <template>
     <style include="menu-styles">
@@ -29,7 +27,7 @@
     },
     ready:function () {
       var T = this;
-      tasks.queries.fetchCurrent(this.currentProject).then(function (queries) {
+      TD.queries.fetchCurrent(this.currentProject).then(function (queries) {
         T.queries = queries;
       });
     }

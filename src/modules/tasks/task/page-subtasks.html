@@ -59,12 +59,12 @@
       var initdata = {
         parent:this.task,
         project:this.task.project,
-        author:tasks.config.user,
+        author:TD.auth.getCurrentUser(),
       }
       var shownFields = ['subject','description','parent_issue_id','tracker_id','priority_id','project_id','assigned_to_id'];
       var editDialog = new TDTaskDialogEdit("Новая подзадача", initdata, shownFields);
       editDialog.addEventListener('save', function (e) {
-        tasks.addTask(e.detail.data).then(function (task) {
+        TD.tasks.addTask(e.detail.data).then(function (task) {
           T.fire("task_update");
         }).catch(function (err) {
           alert(err);
@@ -77,7 +77,7 @@
       var searchDialog = new TDCommonDialogSearchTask();
       searchDialog.addEventListener('task_found', function (e) {
         var taskId = e.detail;
-        tasks.updateTask(taskId, {parent_issue_id:T.task.id}).then(function () {
+        TD.tasks.updateTask(taskId, {parent_issue_id:T.task.id}).then(function () {
           T.fire("task_update");
         }).catch(function (err) {
           T.fire('td.error.connection', err);

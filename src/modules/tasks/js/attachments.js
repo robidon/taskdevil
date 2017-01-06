@@ -1,11 +1,11 @@
 (function () {
 
-  tasks = _.extend(tasks, {
+  TD = _.extend(TD, {
     attachments: {
       upload:function (file, onProgress) {
         var T = this;
         return new Promise(function (resolve, reject) {
-          tasks.transport._upload(file, function (response) {
+          TD.transport._upload(file, function (response) {
             //console.log(response.upload);
             response.upload.filename = file.name;
             response.upload.content_type = file.type;
@@ -23,7 +23,7 @@
       },
       add: function (taskId, uploads) {
         return new Promise(function (resolve, reject) {
-          tasks.transport._put("issues/"+taskId, {attachments:uploads}, function (response) {
+          TD.transport._put("issues/"+taskId, {attachments:uploads}, function (response) {
             console.log(response);
             resolve();
           }, function (error) {
@@ -33,7 +33,7 @@
       },
       delete: function (attachmentId) {
         return new Promise(function (resolve, reject) {
-          tasks.transport._delete('attachments/'+attachmentId, {}, function (response) {
+          TD.transport._delete('attachments/'+attachmentId, {}, function (response) {
             console.log('deleted');
           }, function (error) {
             reject("Не получилось удалить аттач #" + attachmentId);

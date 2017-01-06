@@ -17,7 +17,7 @@
 
   _loadCache();
 
-  tasks = _.extend(tasks, {
+  TD = _.extend(TD, {
     projects: {
       fetchAll: function () {
         return new Promise(function(resolve, reject) {
@@ -25,7 +25,7 @@
             resolve(projects);
             return;
           }
-          tasks.transport._query("projects", {limit:100}, function (response) {
+          TD.transport._query("projects", {limit:100}, function (response) {
             response.projects.forEach(function (p) {
               projects.push(p);
             });
@@ -40,7 +40,7 @@
             resolve(_.find(projects, function (p) { return p.id == id; }));
             return;
           }
-          tasks.transport._query("projects/"+id, {limit:100}, function (response) {
+          TD.transport._query("projects/"+id, {limit:100}, function (response) {
             resolve(response.project);
           });
         });

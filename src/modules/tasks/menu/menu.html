@@ -73,6 +73,9 @@
     observers: [
       'routeDataChange(routeData.page)'
     ],
+    ready: function () {
+
+    },
     routeDataChange:function (page) {
       if (page == 'settings') {
         this.selectedMenuTab = 3;
@@ -80,7 +83,7 @@
     },
     actionAddTask: function () {
       var initdata = {
-        author:tasks.config.user,
+        author:TD.auth.getCurrentUser(),
       }
       var shownFields = ['subject','description','tracker_id','priority_id','project_id','assigned_to_id'];
       var editDialog = new TDTaskDialogEdit('Новая задача', initdata, shownFields);
@@ -88,7 +91,7 @@
         editDialog.remove();
       });
       editDialog.addEventListener('save', function (e) {
-        tasks.addTask(e.detail.data).then(function (task) {
+        TD.tasks.addTask(e.detail.data).then(function (task) {
           navigateTo('/task-info/'+task.id);
         });
       });

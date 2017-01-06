@@ -1,7 +1,5 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
 
 <link rel="import" href="components/tasklist.html">
-<link rel="import" href="shared-styles.html">
 
 <dom-module id="page-by-query">
   <template>
@@ -34,10 +32,10 @@
         var T = this;
         if (query == T.loadedQuery) return;
         T.showPreloader = true;
-        var queryPromise = tasks.queries.fetchById(query).then(function (q) {
+        var queryPromise = TD.queries.fetchById(query).then(function (q) {
           T.title = q.name;
         });
-        tasks.fetchByQuery(T.routeData.query).then(function (tasks) {
+        TD.tasks.fetchByQuery(T.routeData.query).then(function (tasks) {
           T.tasks = tasks;
           T.loadedQuery = query;
           queryPromise.then(function () {

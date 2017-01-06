@@ -3,11 +3,11 @@
   var users = [];
   var currentUser = {};
 
-  tasks = _.extend(tasks,{
+  TD = _.extend(TD,{
     users: {
       fetchAll:function () {
         return new Promise(function (resolve, reject) {
-          tasks.transport._query("projects/fs2/memberships", {limit:100}, function (response) {
+          TD.transport._query("projects/fs2/memberships", {limit:100}, function (response) {
             users = [];
             response.memberships.forEach(function (m) {
               if (m.user) {
@@ -22,7 +22,7 @@
       },
       fetchAllWithGroups:function () {
         return new Promise(function (resolve, reject) {
-          tasks.transport._query("projects/fs2/memberships", {limit:100}, function (response) {
+          TD.transport._query("projects/fs2/memberships", {limit:100}, function (response) {
             results = [];
             response.memberships.forEach(function (m) {
               if (m.user) {
@@ -50,9 +50,9 @@
             resolve(currentUser);
             return;
           }
-          tasks.transport._query("users/current", {}, function (response) {
+          TD.transport._query("users/current", {}, function (response) {
             currentUser = response.user;
-            tasks.updateConfig({user:{id:currentUser.id,name:currentUser.lastname + ' ' + currentUser.firstname}});
+            TD.updateConfig({user:{id:currentUser.id,name:currentUser.lastname + ' ' + currentUser.firstname}});
             resolve(response.user);
           }, function (error) {
             reject("Не получилось запросить информацию о текущем пользователе");

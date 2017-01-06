@@ -12,7 +12,7 @@
         }
       },
       statusChanged: function () {
-        this.icon = tasks.statuses[this.status.id].icon;
+        this.icon = TD.statuses[this.status.id].icon;
       }
     })
   </script>
@@ -20,7 +20,7 @@
 
 <dom-module id="td-task-tracker-icon">
   <template>
-    <style include="shared-styles"></style>
+    <style include="td-base-styles"></style>
     <iron-icon style$="width:[[size]]px; height:[[size]]px" icon="[[icon]]" class$="[[cssClass]]"></iron-icon>
   </template>
   <script type="text/javascript">
@@ -41,7 +41,7 @@
         }
       },
       trackerChanged: function () {
-        this.icon = tasks.trackers[this.tracker.id].icon;
+        this.icon = TD.trackers[this.tracker.id].icon;
       },
       priorityChanged: function () {
         this.cssClass = 'td-priority-'+this.priority.id;

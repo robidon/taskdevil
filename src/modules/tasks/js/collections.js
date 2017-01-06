@@ -1,6 +1,6 @@
 (function () {
   
-  tasks = _.extend(tasks, {
+  TD = _.extend(TD, {
     STATUS: {
       NEW:1, // новый
       ASSIGNED:2, // назначен

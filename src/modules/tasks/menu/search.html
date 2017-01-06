@@ -48,7 +48,7 @@
         T.projects = [];
         T.searchProjects = [];
         T.projectsTree = [];
-        tasks.projects.fetchAll().then(function (projects) {
+        TD.projects.fetchAll().then(function (projects) {
           T.projects = projects;
           T.updateProjectsTree();
           T.searchProjects = T.projectsTree.slice();

@@ -129,7 +129,7 @@
         (function (file, index) {
           file.progress = 0;
           T.push('uploads', file);
-          tasks.attachments.upload(file, function (e) {
+          TD.attachments.upload(file, function (e) {
             file.progress = e.loaded;
             T.notifyPath('uploads.'+index+'.progress',e.loaded);
           }).then(function (attachmentInfo) {
@@ -138,7 +138,7 @@
             file.progress = file.size;
             T.notifyPath('uploads.'+index+'.progress',file.size);
             if (uploadedFiles == filesCount) {
-              tasks.attachments.add(T.task.id, newAttachments). then(function () {
+              TD.attachments.add(T.task.id, newAttachments). then(function () {
                 T.uploads = [];
                 T.hideDropZone = true;
                 T.fire('task_update');
@@ -156,7 +156,7 @@
       var attachmentId = e.target.attachmentId;
       console.log(attachmentId);
       var T = this;
-      tasks.attachments.delete(attachmentId).then(function() {
+      TD.attachments.delete(attachmentId).then(function() {
         T.fire('task_update');
       }, function (errText) {
         T.fire('td.error.connection', errText);
