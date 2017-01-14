@@ -1,13 +1,18 @@
 {
   "name": "task-devil",
   "version": "0.1.0",
+  "repository": "https://github.com/robidon/taskdevil.git",
   "description": "redmine interface",
   "author": "Rodion Trofimov <trofimov.rodion@gmail.com",
   "main": "proxy.js",
   "scripts": {
-    "start": "node proxy.js"
+    "dev": "concurrently --kill-others \"node proxy.js\" \"polymer serve\"",
+    "start": "polymer serve"
   },
   "dependencies": {
-    "cors-anywhere": "^0.4.0"
+  },
+  "devDependencies": {
+    "cors-anywhere": "^0.4.0",
+    "concurrently": "^3.1.0"
   }
 }
