@@ -15,6 +15,5 @@
     "file-upload": "^2.0.0"
   },
   "devDependencies": {
-    //"web-component-tester": "^4.0.0"
   }
 }

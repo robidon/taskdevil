@@ -1,12 +1,7 @@
 (function (TD) {
 
   TD = _.extend(TD, {
-    config:{
-      /*redmineUrl: 'https://pm.vs58.net',
-      apiKey: '2904ec11b363aea640f6cdefca749e188bb02a0f', //Rodion key
-      userId: 5, // Rodion id
-      generalProject: 'fs2',*/
-    },
+    config:{},
     updateConfig: function (update) {
       var _config = _.assign(this.config, update);
       this.config = _.extend({},_config);
