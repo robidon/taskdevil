@@ -1,13 +1,13 @@
-<link rel="import" href="task/styles.html">
-<link rel="import" href="task/dialog-comment.html">
-<link rel="import" href="task/layout.html">
-<link rel="import" href="task/dialog-edit.html">
+<link rel="import" href="styles.html">
+<link rel="import" href="dialog-comment.html">
+<link rel="import" href="layout.html">
+<link rel="import" href="dialog-edit.html">
 
-<link rel="import" href="components/html-echo.html">
+<link rel="import" href="../components/html-echo.html">
 
-<script type="text/javascript" src="../bower_components/moment/moment.js"></script>
-<script type="text/javascript" src="../bower_components/moment/locale/ru.js"></script>
-<script type="text/javascript" src="../bower_components/textile-js/lib/textile.min.js"></script>
+<script type="text/javascript" src="../../../../bower_components/moment/moment.js"></script>
+<script type="text/javascript" src="../../../../bower_components/moment/locale/ru.js"></script>
+<script type="text/javascript" src="../../../../bower_components/textile-js/lib/textile.min.js"></script>
 
 
 
@@ -16,7 +16,7 @@
   <template>
 
     <style include="td-task-styles">
-      .topBarTabs{
+      #topBarTabs{
         color:#fff;
       }
       a.tablink {
@@ -24,25 +24,18 @@
         @apply(--layout-horizontal);
         @apply(--layout-center-center);
       }
-      .tabShifter {
-        display: none
-      }
-      .topBarTabs {
+      #topBarTabs {
         @apply(--layout-flex);
         @apply(--layout-self-end);
         min-width:300px;
         height: 64px;
       }
       @media screen and (min-width: 1000px) {
-        .tabShifter {
-          display: block
-        }
         .detailsTab {
           display: none
         }
-        .toolbarMain {
-          height: calc(var(--calculated-paper-toolbar-height) * 2);
-        }
+      }
+      @media screen and (max-width: 1000px) {
       }      
     </style>
 
@@ -56,10 +49,10 @@
 
       <app-header condenses reveals effects="waterfall">
 
-        <paper-toolbar id="toolbarMain" class="toolbarMain">
+        <paper-toolbar id="toolbarMain">
           <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
-          <span main-title class="title flex">[[task.tracker.name]]: [[task.id]]</span>
-          <paper-tabs id="topBarTabs" class="topBarTabs" selected="{{page}}" noink attr-for-selected="page" fallback-selection="details">
+          <span main-title class="title">[[task.tracker.name]]: [[task.id]]</span>
+          <paper-tabs id="topBarTabs" selected="{{page}}" noink attr-for-selected="page" fallback-selection="details">
             <paper-tab page="details" class="detailsTab" link><a href="/task-info/[[id]]/details" class="tablink"><iron-icon icon="icons:info-outline"></iron-icon></a></paper-tab>
             <paper-tab page="attachments" link>
               <a href="/task-info/[[id]]/attachments" class="tablink"><span id="attachmentsTabTitle"><iron-icon icon="icons:attachment"></iron-icon></span></a>
@@ -148,9 +141,11 @@
       ],
       screenIsLargeChanged: function (screenIsLarge) {
         if (!screenIsLarge) {
+          console.log('screen is not large');
           this.$.toolbarMain.classList.add('medium-tall');
           this.$.topBarTabs.classList.add('middle');
         } else {
+          console.log('screen is large');
           this.$.toolbarMain.classList.remove('medium-tall');
           this.$.topBarTabs.classList.remove('middle');
         }

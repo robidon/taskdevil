@@ -11,15 +11,13 @@
     transport: {
       _query: function(resource, params, success, error, customConfig) {
         var qs = '';
-        for (var p in params) {
-          qs += '&'+p+'='+params[p];
-        }
+        qs = $.param(params);
         var config = _.clone(TD.config);
         if (customConfig) {
           config = _.extend(config, customConfig);
         }
         $.ajax({
-            url: config.redmineUrl + "/"+resource+".json?key="+config.apiKey+qs,
+            url: config.redmineUrl + "/"+resource+".json?key="+config.apiKey+'&'+qs,
             //key - это ключ api из настроек профиля
 
             method: "GET",

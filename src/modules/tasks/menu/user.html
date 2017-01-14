@@ -139,14 +139,14 @@
         var params = {};
         var T = this;
         T.showPreloader = true;
-        params.status_id = this.selectedStatus.id;
+        params.status_id = [this.selectedStatus.id];
         if (T.project_id) {
-          params.project_id = T.project_id;
+          params.project_id = [T.project_id];
         }
         if (T.user_id) {
-          params.assigned_to_id = T.user_id;
+          params.assigned_to_id = [T.user_id];
         }
-        TD.tasks.fetchBy(params).then(function (tasks) {
+        TD.tasks.fetchByFilter(params).then(function (tasks) {
           T.showPreloader = false;
           T.allFoundTasks = tasks;
           T.foundTasks = _.filter(T.allFoundTasks, function (el) {
