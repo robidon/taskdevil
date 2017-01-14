@@ -1,0 +1,13 @@
+{
+  "name": "task devil",
+  "version": "0.1.0",
+  "description": "redmine interface",
+  "author": "Rodion Trofimov <trofimov.rodion@gmail.com",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  },
+  "dependencies": {
+    "cors-anywhere": "^0.4.0"
+  }
+}
