@@ -4,12 +4,27 @@
       :host{
         display: block;
         height: 100%;
+        --paper-item-selected-weight:normal;
+        --paper-item-selected: {
+          background-color:#f0f0f0;
+        }
+        --paper-item-focused: {
+        }
+        --paper-item-focused-before: {
+          background:none; 
+        }
       }
       .statusSwitcher {
         position:relative;
         line-height:40px;
         text-align:center;
         background:#fff;
+      }
+      .taskToolbar {
+        position:relative;
+        line-height:40px;
+        text-align:center;
+        background:#ccc;
       }
       #filtersDialog {
         padding-bottom: 8px;
@@ -53,6 +68,12 @@
           <paper-icon-button on-tap="nextStatus" icon="hardware:keyboard-arrow-right"></paper-icon-button>
         </div>
 
+        <div class="layout horizontal no-wrap taskToolbar">
+          <paper-icon-button icon="hardware:keyboard-arrow-left"></paper-icon-button>
+          <div class="flex">Выбрано: [[selectedTasks.length]]</div>
+          <paper-icon-button icon="icons:create"></paper-icon-button>
+        </div>
+
       </div>
 
       <div>
@@ -64,7 +85,7 @@
           <template is="dom-repeat" items="[[foundTasks]]">
             <paper-item>
               <paper-item-body class="menuTaskItem">
-                <div><a href="/task-info/[[item.id]]" on-tap="">[[item.subject]]</a></div>
+                <div><a href="/task-info/[[item.id]]" on-tap="tapTaskLink">[[item.subject]]</a></div>
                 <div secondary>
                   <td-task-tracker-icon size="16" tracker=[[item.tracker]] priority=[[item.priority]]></td-task-tracker-icon>
                   [[item.project.name]]
@@ -98,9 +119,26 @@
           type:Array,
         },
       },
+      tapTaskLink: function (e) {
+        e.stopPropagation();
+      },
       ready: function () {
         this.foundTasks = [];
         var T = this;
+        /*
+
+        Списки задач:
+
+        Требуют ответа:
+          Созданы мной, статус: обратная связь, проверка менеджером, в отделе QA
+        Входящие задачи:
+          Назначены на меня, статус: в процессе, назначена, проверка менеджером, обратная связь
+        Планируемые задачи: Назначены на меня, статус: новая
+        Только баги: Назначены на меня, статус: Новые, в отделе QA
+        Наблюдаемые задачи: те, которые я создал, или где я наблюдатель
+
+        */
+
         this.statuses = [
           3,2,8,1,9
         ];
