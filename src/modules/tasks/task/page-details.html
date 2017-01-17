@@ -138,6 +138,7 @@
       var T = this;
       T.parenttask = undefined;
       T.hasParent = false;
+      T.taskCopy = null;
       if (!T.task) return;
       if (T.task.parent && T.task.parent.id) {
         TD.tasks.fetchById(T.task.parent.id).then(function (parenttask) {
