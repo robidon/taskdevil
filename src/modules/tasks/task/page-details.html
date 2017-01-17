@@ -20,7 +20,7 @@
               <span class$=[[editableClass]] edit="subject" on-tap="edit">[[task.subject]]</span>
             </div>
           </template>
-          <html-echo html=[[formatText(task.description)]]></html-echo>
+          <html-echo on-tap="onDescTap" html=[[formatText(task.description)]]></html-echo>
         </div>
 
         <div class="card-actions">
@@ -127,6 +127,13 @@
     ready:function () {
 
     },
+    onDescTap:function (e) {
+      if (e.path[0].tagName == 'A') {
+        window.open(e.path[0].getAttribute('href'),"_blank");
+      }
+      e.preventDefault();
+      e.stopPropagation();
+    },
     taskChanged: function () {
       var T = this;
       T.parenttask = undefined;
@@ -201,21 +208,20 @@
       var params = {};
 
       if (!T.taskCopy) return;
-      console.log("ASDASSDASD");
       switch(field) {
         case "project_id":
-          if (T.taskCopy.project.id != event.target.value) {
-            params[field] = event.target.value;
+          if (parseInt(T.taskCopy.project.id) != parseInt(event.target.value)) {
+            params[field] = parseInt(event.target.value);
           }
           break;
         case "status_id":
-          if (T.taskCopy.status.id != event.target.selected) {
-            params[field] = event.target.selected;
+          if (parseInt(T.taskCopy.status.id) != parseInt(event.target.selected)) {
+            params[field] = parseInt(event.target.selected);
           }
           break;
         case "assigned_to_id":
-          if (T.taskCopy.assigned_to_id != event.target.value) {
-            params[field] = event.target.value;
+          if (parseInt(T.taskCopy.assigned_to_id) != parseInt(event.target.value)) {
+            params[field] = parseInt(event.target.value);
           }
           break;
       }
