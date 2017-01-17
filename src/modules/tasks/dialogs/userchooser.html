@@ -37,7 +37,7 @@
         T.allUsers = [];
         T.searchString = '';
         T.userSearchResults = T.allUsers.slice();
-        tasks.users.fetchAllWithGroups().then(function (users) {
+        TD.users.fetchAllWithGroups().then(function (users) {
         	T.allUsers = users;
         	T.filter();
           T.$.userSearchDialog.constrain();
@@ -165,9 +165,11 @@
         var input = _.find(event.target.parentNode.childNodes, function (el) {
           return el.tagName=="INPUT";
         });
+        var changed = (T.value != e.detail.id)
         T.value = e.detail.id;
         T.username = e.detail.name;
         T.clearIconHiddenClass = '';
+        if (changed) T.fire('change');
         searchDialog.remove();
       });
       document.body.appendChild(searchDialog);

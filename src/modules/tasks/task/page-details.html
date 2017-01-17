@@ -201,7 +201,7 @@
       var params = {};
 
       if (!T.taskCopy) return;
-
+      console.log("ASDASSDASD");
       switch(field) {
         case "project_id":
           if (T.taskCopy.project.id != event.target.value) {
@@ -211,6 +211,11 @@
         case "status_id":
           if (T.taskCopy.status.id != event.target.selected) {
             params[field] = event.target.selected;
+          }
+          break;
+        case "assigned_to_id":
+          if (T.taskCopy.assigned_to_id != event.target.value) {
+            params[field] = event.target.value;
           }
           break;
       }
