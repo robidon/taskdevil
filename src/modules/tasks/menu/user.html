@@ -62,17 +62,21 @@
           </paper-input-container>
         </div>
 
-        <div class="layout horizontal no-wrap statusSwitcher">
-          <paper-icon-button on-tap="prevStatus" icon="hardware:keyboard-arrow-left"></paper-icon-button>
-          <div class="flex">[[selectedStatus.name]]</div>
-          <paper-icon-button on-tap="nextStatus" icon="hardware:keyboard-arrow-right"></paper-icon-button>
-        </div>
+        <template is="dom-if" if="[[!selectedTasks.length]]">
+          <div class="layout horizontal no-wrap statusSwitcher">
+            <paper-icon-button on-tap="prevStatus" icon="hardware:keyboard-arrow-left"></paper-icon-button>
+            <div class="flex">[[selectedStatus.name]]</div>
+            <paper-icon-button on-tap="nextStatus" icon="hardware:keyboard-arrow-right"></paper-icon-button>
+          </div>
+        </template>
 
-        <div class="layout horizontal no-wrap taskToolbar">
-          <paper-icon-button icon="hardware:keyboard-arrow-left"></paper-icon-button>
-          <div class="flex">Выбрано: [[selectedTasks.length]]</div>
-          <paper-icon-button icon="icons:create"></paper-icon-button>
-        </div>
+        <template is="dom-if" if="[[selectedTasks.length]]">
+          <div class="layout horizontal no-wrap taskToolbar">
+            <paper-icon-button on-tap="clearSelection" icon="hardware:keyboard-arrow-left"></paper-icon-button>
+            <div class="flex">Выбрано: [[selectedTasks.length]]</div>
+            <paper-icon-button icon="icons:create"></paper-icon-button>
+          </div>
+        </template>
 
       </div>
 
@@ -81,7 +85,7 @@
         <template is="dom-if" if="[[!foundTasks.length]]">
           <div class="emptyMessage">Нет таких задач</div>
         </template>
-        <paper-listbox multi id="foundTasksList" selected="{{selectedTasks}}">
+        <paper-listbox multi id="foundTasksList" selected-values="{{selectedTasks}}">
           <template is="dom-repeat" items="[[foundTasks]]">
             <paper-item>
               <paper-item-body class="menuTaskItem">
@@ -142,6 +146,7 @@
         this.statuses = [
           3,2,8,1,9
         ];
+        this.selectedTasks = [];
         for(var i in this.statuses) {
           this.statuses[i] = TD.statuses[this.statuses[i]];
         }
@@ -174,6 +179,7 @@
       },
       filtersChanged: function () {
         this.foundTasks = [];
+        this.selectedTasks = [];
         var params = {};
         var T = this;
         T.showPreloader = true;
@@ -193,6 +199,9 @@
         }).catch(function () {
           T.showPreloader = false;
         });
+      },
+      clearSelection: function () {
+        this.selectedTasks = [];
       },
       patchOverlay: function (e) {
         if (e.target.withBackdrop) {
