@@ -42,7 +42,7 @@
     <div class="layout vertical height100">
 
       <div class="layout horizontal">
-        <paper-tabs selected="{{selectedMenuTab}}" fallback-selection="0">
+        <paper-tabs selected="{{selectedMenuTab}}">
           <paper-tab><paper-icon-button icon="list"></paper-icon-button></paper-tab>
           <paper-tab><paper-icon-button icon="notification:folder-special"></paper-icon-button></paper-tab>
           <paper-tab><paper-icon-button icon="search"></paper-icon-button></paper-tab>
@@ -74,6 +74,7 @@
       'routeDataChange(routeData.page)'
     ],
     ready: function () {
+      this.selectedMenuTab = 0;
     },
     routeDataChange:function (page) {
       if (page == 'settings') {

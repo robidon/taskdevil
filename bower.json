@@ -15,8 +15,8 @@
     "iron-elements": "PolymerElements/iron-elements#^1.0.10",
     "paper-elements": "PolymerElements/paper-elements#^1.0.7",
     "moment": "^2.15.1",
-    "file-upload": "^2.0.0"
+    "file-upload": "^2.0.0",
+    "paper-button-group": "^0.0.1"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }

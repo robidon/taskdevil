@@ -1,0 +1,53 @@
+<dom-module id="td-tasks-dialog-properties">
+  <template>
+    <style type="text/css"></style>
+    <paper-dialog id="dialog" on-iron-overlay-opened="patchOverlay" on-iron-overlay-closed="dismissDialog" modal auto-fit-on-attach>
+      <h2>Свойства задач</h2>
+      <paper-dialog-scrollable>
+        <div class="dropdown-section">Приоритет:</div>
+        <paper-button-group selected="">
+          <template is="dom-repeat" items="[[tasksPriorities]]">
+            <paper-button toggles name="[[item.id]]">[[item.name]]</paper-button>
+          </template>
+        </paper-button-group>
+        <div class="dropdown-section">Статус:</div>
+        <paper-button-group selected="">
+          <template is="dom-repeat" items="[[tasksStatuses]]">
+            <paper-button toggles name="[[item.id]]">[[item.name]]</paper-button>
+          </template>
+        </paper-button-group>
+      </paper-dialog-scrollable>
+    </paper-dialog>
+  </template>
+  <script type="text/javascript">
+    var TDTasksDialogProperties = Polymer({
+      is:"td-tasks-dialog-properties",
+      properties:{},
+      ready:function () {
+        this.tasksStatuses = _.values(TD.statuses);
+        this.tasksPriorities = _.values(TD.priorities);
+      },
+      open:function () {
+        document.body.appendChild(this);
+        this.$.dialog.open();
+      },
+      dismissDialog:function (e) {
+        var T = this;
+        if (e.detail.confirmed) {
+          this.fire('save', {});
+        }
+        this.fire('dismiss');
+        this.remove();
+      },
+      patchOverlay: function (e) {
+        if (e.target.withBackdrop) {
+          try {
+            e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
+          } catch (exc) {
+
+          }
+        }
+      }
+    })
+  </script>
+</dom-module>
