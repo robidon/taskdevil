@@ -2,7 +2,12 @@
   <template>
     <style type="text/css" include="td-task-styles">
       .description {
-        overflow-y:auto;
+        overflow-x:auto;
+      }
+      .card-actions paper-button {
+        background: var(--paper-indigo-500);
+        color: white;
+        margin:5px;
       }
     </style>
     <div class="taskContentBlock layout vertical">
@@ -62,6 +67,21 @@
             <template is="dom-if" if="[[!editable]]">
               <div class="label">Проект</div>
               <div>[[task.project.name]]</div>
+            </template>
+          </div>
+          <div class="taskContentBlockItem flex" style="min-width:200px">
+            <template is="dom-if" if="[[editable]]">
+              <paper-dropdown-menu label="Приоритет" style="width:100%">
+                <paper-listbox class="dropdown-content" edit="priority_id" on-iron-select="change" id="priority_id" selected="{{task.priority.id}}" attr-for-selected='itemid'>
+                  <template is="dom-repeat" items="[[tasksPriorities]]">
+                    <paper-item itemid='[[item.id]]'>[[item.name]]</paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+            </template>
+            <template is="dom-if" if="[[!editable]]">
+              <div class="label">Приоритет</div>
+              <div class$=[[editableClass]] edit="priority_id" on-tap="edit">[[task.priority.name]]</div>
             </template>
           </div>
           <div class="taskContentBlockItem flex" style="min-width:200px">
@@ -184,6 +204,7 @@
       T.editableClass = T.editable ? "editable" :"";
       if (T.editable) {
         T.tasksStatuses = _.values(TD.statuses);
+        T.tasksPriorities = _.values(TD.priorities);
         T.taskCopy = _.cloneDeep(T.task);
       }
     },
@@ -219,6 +240,11 @@
           break;
         case "status_id":
           if (parseInt(T.taskCopy.status.id) != parseInt(event.target.selected)) {
+            params[field] = parseInt(event.target.selected);
+          }
+          break;
+        case "priority_id":
+          if (parseInt(T.taskCopy.priority.id) != parseInt(event.target.selected)) {
             params[field] = parseInt(event.target.selected);
           }
           break;
