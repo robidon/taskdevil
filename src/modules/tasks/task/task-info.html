@@ -134,11 +134,12 @@
       ],
       screenIsLargeChanged: function (screenIsLarge) {
         if (!screenIsLarge) {
-          console.log('screen is not large');
           this.$.toolbarMain.classList.add('medium-tall');
           this.$.topBarTabs.classList.add('middle');
         } else {
-          console.log('screen is large');
+          if (this.page == 'details') {
+            this.page = 'history';
+          }
           this.$.toolbarMain.classList.remove('medium-tall');
           this.$.topBarTabs.classList.remove('middle');
         }
@@ -148,6 +149,9 @@
         this.addEventListener('task_update', function () {
           T.idChanged();
         });
+        if (this.screenIsLarge && this.page =='details') {
+          this.page = 'history';
+        }
       },
       toggleMenu: function () {
         this.fire('td.menu.toggle');
@@ -156,6 +160,9 @@
         this.id = id;
       },
       routePageChanged: function (page) {
+        if (page == 'details' && this.screenIsLarge) {
+          page = 'history';
+        }
         this.page = page;
       },
       updateView:function () {
