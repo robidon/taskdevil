@@ -1,10 +1,10 @@
 <dom-module is="td-task-page-details">
   <template>
     <style type="text/css" include="td-task-styles">
+      .description {
+        overflow-y:auto;
+      }
     </style>
-
-
-
     <div class="taskContentBlock layout vertical">
     
       <paper-card class="taskContentBlockItem">
@@ -20,7 +20,9 @@
               <span class$=[[editableClass]] edit="subject" on-tap="edit">[[task.subject]]</span>
             </div>
           </template>
-          <html-echo on-tap="onDescTap" html=[[formatText(task.description)]]></html-echo>
+          <div class="description">
+            <html-echo on-tap="onDescTap" html=[[formatText(task.description)]]></html-echo>
+          </div>
         </div>
 
         <div class="card-actions">
