@@ -67,7 +67,7 @@
 
     <app-drawer-layout fullbleed>
       <!-- Drawer content -->
-      <app-drawer class="appdrawer" drawer swipe-open>
+      <app-drawer id="appdrawer" class="appdrawer" drawer swipe-open>
 
         <td-menu></td-menu>
 
@@ -134,6 +134,9 @@
         this.moreMenuItems = [];
         this.selectedMenu = 0;
         var T = this;
+        this.addEventListener('td.menu.toggle', function () {
+          T.$.appdrawer.toggle();
+        });
       },
 
       _currentProjectChanged: function(project) {

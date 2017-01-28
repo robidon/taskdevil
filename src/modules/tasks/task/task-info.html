@@ -35,6 +35,11 @@
           display: none
         }
       }
+      @media screen and (min-width: 640px) {
+        .menubtn {
+          display: none;
+        }
+      }
       @media screen and (max-width: 1000px) {
       }      
     </style>
@@ -50,7 +55,7 @@
       <app-header condenses reveals effects="waterfall">
 
         <paper-toolbar id="toolbarMain">
-          <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
+          <paper-icon-button icon="menu" class="menubtn" on-tap="toggleMenu"></paper-icon-button>
           <span main-title class="title">[[task.tracker.name]]: [[task.id]]</span>
           <paper-tabs id="topBarTabs" selected="{{page}}" noink attr-for-selected="page" fallback-selection="details">
             <paper-tab page="details" class="detailsTab" link><a href="/task-info/[[id]]/details" class="tablink"><iron-icon icon="icons:info-outline"></iron-icon></a></paper-tab>
@@ -80,18 +85,6 @@
             </paper-tab>
           </paper-tabs>
 
-          <paper-menu-button
-              horizontal-align="right"
-              vertical-align="top"
-              horizontal-offset="10"
-              vertical-offset="20">
-            <paper-icon-button icon="icons:more-vert" class="dropdown-trigger"></paper-icon-button>
-            <paper-menu class="dropdown-content">
-              <template is="dom-repeat" items=[[moreMenuItems]]>
-                <paper-item item="[[item]]" on-tap=_moreMenuAction>[[item.name]]</paper-item>
-              </template>
-            </paper-menu>
-          </paper-menu-button>
 
         </paper-toolbar>
 
@@ -155,6 +148,9 @@
         this.addEventListener('task_update', function () {
           T.idChanged();
         });
+      },
+      toggleMenu: function () {
+        this.fire('td.menu.toggle');
       },
       routeIdChanged: function (id) {
         this.id = id;
