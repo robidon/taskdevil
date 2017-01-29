@@ -57,7 +57,7 @@
       <div name="blank">
         <td-preloader display></td-preloader>
       </div>
-      <td-auth-login name="auth"></td-auth-login>
+      <td-auth-login name="login"></td-auth-login>
       <td-page-tasks name="tasks"></td-page-tasks>
       <td-error-401 name="error-401"></td-error-401>
       <td-error-404 name="error-404"></td-error-404>
@@ -86,8 +86,8 @@
       ],
 
       ready: function () {
-        this.page = 'blank'
-        this.fallbackPage = 'auth';
+        this.page = 'blank';
+        this.fallbackPage = 'login';
         var T = this;
         TD.auth.init().then(function () {
           TD.auth.tryLogin().then(function () {
