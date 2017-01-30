@@ -39,6 +39,9 @@
       paper-menu-button {
         padding:0px;
       }
+      paper-menu-button .dropdown-content {
+        min-width: 200px;
+      }
     </style>
 
     <paper-dialog id="filtersDialog" on-iron-overlay-opened="patchOverlay" role="dialog" class="paper-dialog" with-backdrop always-on-top>
@@ -77,7 +80,14 @@
           <div class="layout horizontal no-wrap taskToolbar">
             <paper-icon-button on-tap="clearSelection" icon="hardware:keyboard-arrow-left"></paper-icon-button>
             <div class="flex">Выбрано: [[selectedTasks.length]]</div>
-            <paper-icon-button on-tap="modifySelected" icon="icons:create"></paper-icon-button>
+            <paper-menu-button dynamic-align close-on-activate>
+              <paper-icon-button class="dropdown-trigger" icon="icons:create"></paper-icon-button>
+              <paper-menu class="dropdown-content">
+                <paper-item on-tap="changeSelectionPriority">Изменить приоритет</paper-item>
+                <paper-item on-tap="changeSelectionStatus">Изменить статус</paper-item>
+                <paper-item on-tap="changeSelectionAssigned">Назначить</paper-item>
+              </paper-menu>
+            </paper-menu-button>
           </div>
         </template>
 
@@ -129,9 +139,27 @@
       tapTaskLink: function (e) {
         e.stopPropagation();
       },
+      _onTapModify: function (e) {
+        this.$$("#modifyDropdown").toggle();
+      },
+      changeSelectionPriority: function (e) {
+        this.showSelectionPropertiesDialog(['priority']);
+      },
+      changeSelectionStatus: function (e) {
+        this.showSelectionPropertiesDialog(['status']);
+      },
+      changeSelectionAssigned: function (e) {
+        this.showSelectionPropertiesDialog(['assigned_to']);
+      },
+      showSelectionPropertiesDialog: function (fields) {
+        var tasks = _.values(_.pick(this.foundTasks, this.selectedTasks));
+        var dialog = new TDTasksDialogProperties(tasks, fields);
+        dialog.open();
+      },
       ready: function () {
         this.foundTasks = [];
         var T = this;
+
         /*
 
         Списки задач:
@@ -206,10 +234,7 @@
       clearSelection: function () {
         this.selectedTasks = [];
       },
-      modifySelected: function () {
-        var dialog = new TDTasksDialogProperties({});
-        dialog.open();
-      },
+      
       patchOverlay: function (e) {
         if (e.target.withBackdrop) {
           try {

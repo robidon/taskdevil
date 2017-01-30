@@ -149,6 +149,7 @@
         this.addEventListener('task_update', function () {
           T.idChanged();
         });
+        this.page == 'details';
         if (this.screenIsLarge && this.page =='details') {
           this.page = 'history';
         }

@@ -1,37 +1,97 @@
 <dom-module id="td-tasks-dialog-properties">
   <template>
-    <style type="text/css"></style>
-    <paper-dialog id="dialog" on-iron-overlay-opened="patchOverlay" on-iron-overlay-closed="dismissDialog" modal auto-fit-on-attach>
-      <h2>Свойства задач</h2>
+    <style type="text/css" include="td-base-styles">
+      .checked {
+        background-color:#f0f0f0;
+      }
+      paper-button.iron-selected {
+        background-color:var(--app-primary-color);
+        color:#fff;
+      }
+    </style>
+    <paper-dialog id="dialog" on-iron-overlay-opened="patchOverlay" on-iron-overlay-closed="dismissDialog" with-backdrop always-on-top auto-fit-on-attach>
       <paper-dialog-scrollable>
-        <div class="dropdown-section">Приоритет:</div>
-        <paper-button-group selected="">
-          <template is="dom-repeat" items="[[tasksPriorities]]">
-            <paper-button toggles name="[[item.id]]">[[item.name]]</paper-button>
+        <div class="dialog-content">
+          <template is="dom-if" if="[[editPriority]]">
+            <h2>Приоритет:</h2>
+            <paper-button-group selected="" on-change="setPriority">
+              <template is="dom-repeat" items="[[tasksPriorities]]">
+                <paper-button toggles name="[[item.id]]" class$="td-priority-[[item.id]] [[item.class]]">[[item.name]]</paper-button>
+              </template>
+            </paper-button-group>
           </template>
-        </paper-button-group>
-        <div class="dropdown-section">Статус:</div>
-        <paper-button-group selected="">
-          <template is="dom-repeat" items="[[tasksStatuses]]">
-            <paper-button toggles name="[[item.id]]">[[item.name]]</paper-button>
+          <template is="dom-if" if="[[editStatus]]">
+            <h2>Статус:</h2>
+            <paper-button-group selected="" on-change="setStatus">
+              <template is="dom-repeat" items="[[tasksStatuses]]">
+                <paper-button toggles name="[[item.id]]" class$="[[item.class]]">[[item.name]]</paper-button>
+              </template>
+            </paper-button-group>
           </template>
-        </paper-button-group>
+          <template is="dom-if" if="[[editAssignedTo]]">
+            <h2>На кого назначена задача:</h2>
+            ДОДЕЛАТЬ НАДА
+          </template>
+        </div>
       </paper-dialog-scrollable>
+      <template is="dom-if" if="[[showButtons]]">
+        <div class="buttons">
+          <paper-button id="cancelBtn" dialog-dismiss>Отмена</paper-button>
+          <paper-button id="sendBtn" dialog-confirm>Готово</paper-button>
+        </div>
+      </template>
     </paper-dialog>
   </template>
   <script type="text/javascript">
     var TDTasksDialogProperties = Polymer({
       is:"td-tasks-dialog-properties",
-      properties:{},
+      properties:{
+        tasks: {
+          type: Array
+        }
+      },
       ready:function () {
         this.tasksStatuses = _.values(TD.statuses);
         this.tasksPriorities = _.values(TD.priorities);
+      },
+      factoryImpl: function(tasks, fields) {
+        var T = this;
+        fields.forEach( function(field) {
+          switch (field) {
+            case "priority": T.editPriority = true; break; 
+            case "status": T.editStatus = true; break; 
+            case "assigned_to": T.editAssignedTo = true; break; 
+          }
+          // statements
+        });
+        T.showButtons = (fields.length != 1);
+        var newTasksStatuses = _.clone(TD.statuses);
+        var newTasksPriorities = _.clone(TD.priorities);
+        _.each(newTasksStatuses, function(el) { el.class = ''; });
+        _.each(newTasksPriorities, function(el) { el.class = ''; });
+        tasks.forEach( function(task) {
+          if (newTasksStatuses[task.status.id]) {
+            newTasksStatuses[task.status.id].class = 'checked';
+          }
+          if (newTasksPriorities[task.priority.id]) {
+            newTasksPriorities[task.priority.id].class = 'checked';
+          }
+        });
+        this.tasksStatuses = _.values(newTasksStatuses);
+        this.tasksPriorities = _.values(newTasksPriorities);
+      },
+      setStatus:function (e) {
+        console.log(e);
+      },
+      setPriority:function (e) {
+        console.log(e);
       },
       open:function () {
         document.body.appendChild(this);
         this.$.dialog.open();
       },
       dismissDialog:function (e) {
+        console.log('dismiss');
         var T = this;
         if (e.detail.confirmed) {
           this.fire('save', {});
