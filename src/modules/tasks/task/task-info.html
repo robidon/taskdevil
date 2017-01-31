@@ -126,6 +126,11 @@
         screenIsLarge: {
           type:Boolean,
           observer:"screenIsLargeChanged"
+        },
+        page: {
+          type: String,
+          value: 'details',
+          observer: "pageChanged"
         }
       },
       observers: [
@@ -144,6 +149,10 @@
           this.$.topBarTabs.classList.remove('middle');
         }
       },
+      pageChanged: function (page) {
+        console.log('task page changed: ' + page);
+        if(!page) this.page = 'details';
+      },
       ready: function () {
         var T = this;
         this.addEventListener('task_update', function () {
@@ -161,6 +170,7 @@
         this.id = id;
       },
       routePageChanged: function (page) {
+        if (!page) page == 'details';
         if (page == 'details' && this.screenIsLarge) {
           page = 'history';
         }
