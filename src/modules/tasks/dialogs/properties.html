@@ -8,13 +8,30 @@
         background-color:var(--app-primary-color);
         color:#fff;
       }
+      .buttonGroup {
+        @apply(--layout-horizontal-wrap);
+        @apply(--layout-justified);
+      }
+      @media screen and (max-width: 640px) {
+        .buttonGroup {
+          @apply(--layout-vertical);
+          @apply(--layout-justified);
+        }
+      }
+      .closeButton {
+        position: absolute;
+        top:-24px; right:0px;
+        width:36px;
+        height:36px;
+        color:#000;
+      }
     </style>
-    <paper-dialog id="dialog" on-iron-overlay-opened="patchOverlay" on-iron-overlay-closed="dismissDialog" with-backdrop always-on-top auto-fit-on-attach>
+    <paper-dialog id="dialog" on-iron-overlay-closed="_dismissDialog" with-backdrop always-on-top>
       <paper-dialog-scrollable>
         <div class="dialog-content">
           <template is="dom-if" if="[[editPriority]]">
             <h2>Приоритет:</h2>
-            <paper-button-group selected="" on-change="setPriority">
+            <paper-button-group selected="" on-change="_setPriority" class="buttonGroup">
               <template is="dom-repeat" items="[[tasksPriorities]]">
                 <paper-button toggles name="[[item.id]]" class$="td-priority-[[item.id]] [[item.class]]">[[item.name]]</paper-button>
               </template>
@@ -22,7 +39,7 @@
           </template>
           <template is="dom-if" if="[[editStatus]]">
             <h2>Статус:</h2>
-            <paper-button-group selected="" on-change="setStatus">
+            <paper-button-group selected="" on-change="_setStatus" class="buttonGroup">
               <template is="dom-repeat" items="[[tasksStatuses]]">
                 <paper-button toggles name="[[item.id]]" class$="[[item.class]]">[[item.name]]</paper-button>
               </template>
@@ -33,16 +50,19 @@
             ДОДЕЛАТЬ НАДА
           </template>
         </div>
+
+        <paper-icon-button class="closeButton" icon="icons:close" dialog-dismiss></paper-icon-button>
       </paper-dialog-scrollable>
-      <template is="dom-if" if="[[showButtons]]">
-        <div class="buttons">
+      <div class="buttons">
+        <template is="dom-if" if="[[showButtons]]">
           <paper-button id="cancelBtn" dialog-dismiss>Отмена</paper-button>
           <paper-button id="sendBtn" dialog-confirm>Готово</paper-button>
-        </div>
-      </template>
+        </template>
+      </div>
     </paper-dialog>
   </template>
   <script type="text/javascript">
+
     var TDTasksDialogProperties = Polymer({
       is:"td-tasks-dialog-properties",
       properties:{
@@ -55,6 +75,7 @@
         this.tasksPriorities = _.values(TD.priorities);
       },
       factoryImpl: function(tasks, fields) {
+        document.body.appendChild(this);
         var T = this;
         fields.forEach( function(field) {
           switch (field) {
@@ -80,34 +101,43 @@
         this.tasksStatuses = _.values(newTasksStatuses);
         this.tasksPriorities = _.values(newTasksPriorities);
       },
-      setStatus:function (e) {
+
+      //local methods
+      _setStatus:function (e) {
         console.log(e);
+
+        if (!this.showButtons) {
+          this.saveAndClose();
+        }
       },
-      setPriority:function (e) {
+      _setPriority:function (e) {
         console.log(e);
+        if (!this.showButtons) {
+          this.saveAndClose();
+        }
       },
+      _dismissDialog:function (e) {
+        if (e.detail.confirmed) {
+          this.saveAndClose();
+        } else {
+          this.close();
+        }
+      },
+
+      //public methods
       open:function () {
-        document.body.appendChild(this);
         this.$.dialog.open();
       },
-      dismissDialog:function (e) {
-        console.log('dismiss');
+      saveAndClose: function () {
         var T = this;
-        if (e.detail.confirmed) {
-          this.fire('save', {});
-        }
+        this.fire('save', {});
+        this.close();
+      },
+      close: function (save) {
         this.fire('dismiss');
         this.remove();
       },
-      patchOverlay: function (e) {
-        if (e.target.withBackdrop) {
-          try {
-            e.target.backdropElement.parentNode.insertBefore(e.target.parentNode, e.target.backdropElement);
-          } catch (exc) {
 
-          }
-        }
-      }
     })
   </script>
 </dom-module>
