@@ -152,9 +152,13 @@
         this.showSelectionPropertiesDialog(['assigned_to']);
       },
       showSelectionPropertiesDialog: function (fields) {
+        var T = this;
         var tasks = _.values(_.pick(this.foundTasks, this.selectedTasks));
         var dialog = new TDTasksDialogProperties(tasks, fields);
         dialog.open();
+        dialog.addEventListener('save', function () {
+          T.filtersChanged();
+        });
       },
       ready: function () {
         this.foundTasks = [];

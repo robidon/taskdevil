@@ -31,7 +31,7 @@
         <div class="dialog-content">
           <template is="dom-if" if="[[editPriority]]">
             <h2>Приоритет:</h2>
-            <paper-button-group selected="" on-change="_setPriority" class="buttonGroup">
+            <paper-button-group selected="" on-iron-select="_setPriority" class="buttonGroup">
               <template is="dom-repeat" items="[[tasksPriorities]]">
                 <paper-button toggles name="[[item.id]]" class$="td-priority-[[item.id]] [[item.class]]">[[item.name]]</paper-button>
               </template>
@@ -39,7 +39,7 @@
           </template>
           <template is="dom-if" if="[[editStatus]]">
             <h2>Статус:</h2>
-            <paper-button-group selected="" on-change="_setStatus" class="buttonGroup">
+            <paper-button-group selected="" on-iron-select="_setStatus" class="buttonGroup">
               <template is="dom-repeat" items="[[tasksStatuses]]">
                 <paper-button toggles name="[[item.id]]" class$="[[item.class]]">[[item.name]]</paper-button>
               </template>
@@ -77,6 +77,7 @@
       factoryImpl: function(tasks, fields) {
         document.body.appendChild(this);
         var T = this;
+        this.updateData = {};
         fields.forEach( function(field) {
           switch (field) {
             case "priority": T.editPriority = true; break; 
@@ -98,20 +99,20 @@
             newTasksPriorities[task.priority.id].class = 'checked';
           }
         });
+        this.tasks = tasks;
         this.tasksStatuses = _.values(newTasksStatuses);
         this.tasksPriorities = _.values(newTasksPriorities);
       },
 
       //local methods
       _setStatus:function (e) {
-        console.log(e);
-
+        this.updateData.status_id = e.detail.item.name;
         if (!this.showButtons) {
           this.saveAndClose();
         }
       },
       _setPriority:function (e) {
-        console.log(e);
+        this.updateData.priority_id = e.detail.item.name;
         if (!this.showButtons) {
           this.saveAndClose();
         }
@@ -126,11 +127,14 @@
 
       //public methods
       open:function () {
+        this.updateData = {};
         this.$.dialog.open();
       },
       saveAndClose: function () {
         var T = this;
-        this.fire('save', {});
+        TD.tasks.updateTasks(_.map(T.tasks, 'id'), T.updateData).then(function () {
+          T.fire('save', this.updateData);
+        });
         this.close();
       },
       close: function (save) {

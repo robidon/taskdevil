@@ -106,10 +106,41 @@
 			var T = this;
 			return new Promise(function (resolve, reject) {
 				TD.transport._put("issues/"+id, {issue:fields}, function (response) {
+					console.log(response);
 					resolve();
 				}, function (error) {
 					reject("Не получилось обновить задачу #" + id);
 				});
+			});
+		},
+		updateTasks: function (ids, fields) {
+			var T = this;
+			return new Promise(function (resolve, reject) {
+
+				var updated = [];
+				var rejected = [];
+
+				var next = function (index) {
+					var id = ids[index];
+					index++;
+					if (index <= ids.length) {
+						T.updateTask(id, fields).then(function () {
+							updated.push(id);
+							next(index);
+						}, function () {
+							rejected.push(id);
+							next(index);
+						});
+					} else {
+						if (rejected.length) {
+							reject (updated, rejected);
+						} else {
+							resolve (updated, rejected);
+						}
+					}
+				}
+				next(0);
+
 			});
 		},
 		addTask: function (data) {
